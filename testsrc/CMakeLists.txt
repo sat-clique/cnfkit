@@ -1,5 +1,6 @@
 add_executable(cnfkit-tests
   LiteralTests.cpp
+  TernaryTests.cpp
 )
 
 target_include_directories(cnfkit-tests PRIVATE "${PROJECT_SOURCE_DIR}/include")
