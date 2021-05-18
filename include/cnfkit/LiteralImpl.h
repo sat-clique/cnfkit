@@ -64,7 +64,7 @@ constexpr auto lit::is_positive() const -> bool
 
 constexpr auto lit::operator-() const -> lit
 {
-  return lit{m_raw_value};
+  return lit{m_raw_value ^ 1};
 }
 
 
