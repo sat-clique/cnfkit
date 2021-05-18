@@ -45,6 +45,11 @@ private:
   uint32_t m_raw_value;
 };
 
+namespace cnfkit_literals {
+constexpr lit operator"" _lit(unsigned long long n);
+constexpr var operator"" _var(unsigned long long n);
+}
+
 constexpr auto operator==(var const& lhs, var const& rhs) -> bool;
 constexpr auto operator!=(var const& lhs, var const& rhs) -> bool;
 constexpr auto operator<(var const& lhs, var const& rhs) -> bool;

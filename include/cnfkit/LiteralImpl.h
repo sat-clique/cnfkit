@@ -1,6 +1,20 @@
 #include <cnfkit/Literal.h>
 
+#include <cmath>
+
 namespace cnfkit {
+
+namespace cnfkit_literals {
+constexpr lit operator"" _lit(unsigned long long n)
+{
+  return lit{var{static_cast<uint32_t>(n)}, true};
+}
+
+constexpr var operator"" _var(unsigned long long n)
+{
+  return var{static_cast<uint32_t>(n)};
+}
+}
 
 constexpr auto var::get_raw_value() const -> uint32_t
 {
