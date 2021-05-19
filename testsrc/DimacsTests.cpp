@@ -3,10 +3,16 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
+#include <filesystem>
+#include <fstream>
 #include <ostream>
+#include <random>
+#include <stdexcept>
 #include <string>
 #include <variant>
 #include <vector>
+
+namespace fs = std::filesystem;
 
 using ::testing::Eq;
 
@@ -40,6 +46,43 @@ std::ostream& operator<<(std::ostream& stream, lit it)
   return stream;
 }
 
+class temp_dir {
+public:
+  constexpr static size_t max_tries = 1024;
+
+  temp_dir(std::string const& name_prefix)
+  {
+    fs::path const base_path = fs::temp_directory_path();
+
+    std::mt19937_64 rng{std::random_device{}()};
+    std::uniform_int_distribution<size_t> uniform_distribution;
+
+    for (size_t i = 0; i < max_tries; ++i) {
+      fs::path candidate = base_path / (name_prefix + std::to_string(uniform_distribution(rng)));
+      std::error_code ignored;
+      if (fs::create_directory(candidate, ignored)) {
+        m_path = candidate;
+        break;
+      }
+    }
+
+    if (m_path.empty()) {
+      throw std::runtime_error{"Creating a temporary directory failed"};
+    }
+  }
+
+  ~temp_dir()
+  {
+    std::error_code ignored;
+    fs::remove_all(m_path, ignored);
+  }
+
+  fs::path const& get_path() const { return m_path; }
+
+private:
+  fs::path m_path;
+};
+
 TEST_P(DimacsParsingTests, ParseFromString)
 {
   DimacsParsingTestSpec spec = GetParam();
@@ -53,6 +96,29 @@ TEST_P(DimacsParsingTests, ParseFromString)
     trivial_formula result;
     parse_cnf_string(get_input(),
                      [&result](std::vector<lit> const& clause) { result.push_back(clause); });
+    EXPECT_THAT(result, Eq(expected));
+  }
+}
+
+TEST_P(DimacsParsingTests, ParseFromFile)
+{
+  temp_dir const tmp{"dimacs_parsing_tests"};
+  fs::path const cnf_file = tmp.get_path() / "problem.cnf";
+
+  {
+    std::ofstream file{cnf_file};
+    file << get_input();
+  }
+
+  if (std::holds_alternative<parse_error>(get_expected())) {
+    EXPECT_THROW(parse_cnf_file(cnf_file, [](std::vector<lit> const& /*unused*/) {}),
+                 std::exception);
+  }
+  else {
+    trivial_formula expected = std::get<trivial_formula>(get_expected());
+    trivial_formula result;
+    parse_cnf_file(cnf_file,
+                   [&result](std::vector<lit> const& clause) { result.push_back(clause); });
     EXPECT_THAT(result, Eq(expected));
   }
 }

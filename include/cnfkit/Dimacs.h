@@ -6,6 +6,7 @@
 
 #include <charconv>
 #include <filesystem>
+#include <optional>
 #include <regex>
 #include <stdexcept>
 #include <string>
@@ -60,15 +61,16 @@ public:
     }
   }
 
-  auto read_char() -> char
+  auto read_char() -> std::optional<char>
   {
     char character = 0;
     int chars_read = gzread(m_file, &character, 1);
-    if (chars_read <= 0) {
-      if (is_eof()) {
-        throw std::invalid_argument{"Syntax error: unexpected end of input file"};
-      }
 
+    if (chars_read == 0 && is_eof()) {
+      return std::nullopt;
+    }
+
+    if (chars_read <= 0) {
       int errnum = 0;
       char const* message = gzerror(m_file, &errnum);
       throw std::runtime_error{message};
@@ -77,31 +79,36 @@ public:
     return character;
   }
 
-  auto read_line() noexcept -> std::string
+  auto read_line() -> std::string
   {
     std::string result;
     constexpr std::string::size_type initial_buf_size = 512;
     result.reserve(initial_buf_size);
-    char character;
-    while ((character = read_char()) != '\n') {
-      result += character;
+    std::optional<char> character;
+    while ((character = read_char())) {
+      if (*character == '\n') {
+        break;
+      }
+      result += *character;
     }
     return result;
   }
 
-  auto read_header_line() noexcept -> std::string
+  auto read_header_line() -> std::string
   {
     std::string line;
     do {
       line = read_line();
-    } while (is_irrelevant_line(line));
+    } while (is_irrelevant_line(line) && !is_eof());
 
     return line;
   }
 
-  void skip_line() noexcept
+  void skip_line()
   {
-    while (read_char() != '\n') {
+    std::optional<char> character = '\0';
+    while (character.has_value() && *character != '\n') {
+      character = read_char();
     }
   }
 
@@ -125,7 +132,7 @@ public:
 
     // stopped in the middle of a literal ~> read rest, too
     while (!is_eof() && std::isspace(buffer.back()) == 0) {
-      buffer.push_back(read_char());
+      buffer.push_back(*read_char());
     }
   }
 
@@ -274,11 +281,14 @@ auto parse_cnf_chunk(std::string const& buffer, size_t offset, UnaryFn&& clause_
 template <typename UnaryFn>
 auto parse_cnf_gz_file(cnf_gz_file& file, UnaryFn&& clause_receiver)
 {
-  problem_header header = parse_cnf_header_line(file.read_header_line());
+  std::string const header_line = file.read_header_line();
+  problem_header header = parse_cnf_header_line(header_line);
 
-  size_t num_clauses = 0;
   std::string buffer;
-  parse_cnf_chunk_result chunk_result;
+  parse_cnf_chunk_result chunk_result =
+      parse_cnf_chunk(header_line, header.header_size, clause_receiver);
+  size_t num_clauses = chunk_result.num_clauses_read;
+
   while (!file.is_eof()) {
     size_t const default_chunk_size = (1 << 20);
     file.read_chunk(default_chunk_size, buffer);
