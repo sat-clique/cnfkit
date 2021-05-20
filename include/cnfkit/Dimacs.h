@@ -230,12 +230,14 @@ inline auto dimacs_to_lit(int dimacs_lit) -> lit
 
 struct parse_cnf_chunk_result {
   size_t num_clauses_read = 0;
-  bool ended_within_clause = false;
+  std::vector<lit> open_clause;
 };
 
 template <typename UnaryFn>
-auto parse_cnf_chunk(std::string const& buffer, size_t offset, UnaryFn&& clause_receiver)
-    -> parse_cnf_chunk_result
+auto parse_cnf_chunk(std::string const& buffer,
+                     size_t offset,
+                     std::vector<lit> open_clause,
+                     UnaryFn&& clause_receiver) -> parse_cnf_chunk_result
 {
   size_t num_clauses_read = 0;
 
@@ -243,7 +245,7 @@ auto parse_cnf_chunk(std::string const& buffer, size_t offset, UnaryFn&& clause_
   auto const end = buffer.begin() + buffer.size();
   auto cursor = buffer.begin() + offset;
 
-  std::vector<lit> lit_buffer;
+  std::vector<lit> lit_buffer = open_clause;
 
   int literal = 0;
 
@@ -275,8 +277,11 @@ auto parse_cnf_chunk(std::string const& buffer, size_t offset, UnaryFn&& clause_
     cursor = buffer.begin() + (next - buffer.c_str());
   }
 
-  return {num_clauses_read, literal != 0};
+  return {num_clauses_read, lit_buffer};
 }
+
+
+constexpr size_t default_chunk_size = (1 << 16);
 
 template <typename UnaryFn>
 auto parse_cnf_gz_file(cnf_gz_file& file, UnaryFn&& clause_receiver)
@@ -286,13 +291,12 @@ auto parse_cnf_gz_file(cnf_gz_file& file, UnaryFn&& clause_receiver)
 
   std::string buffer;
   parse_cnf_chunk_result chunk_result =
-      parse_cnf_chunk(header_line, header.header_size, clause_receiver);
+      parse_cnf_chunk(header_line, header.header_size, {}, clause_receiver);
   size_t num_clauses = chunk_result.num_clauses_read;
 
   while (!file.is_eof()) {
-    size_t const default_chunk_size = (1 << 20);
     file.read_chunk(default_chunk_size, buffer);
-    chunk_result = parse_cnf_chunk(buffer, 0, clause_receiver);
+    chunk_result = parse_cnf_chunk(buffer, 0, chunk_result.open_clause, clause_receiver);
     num_clauses += chunk_result.num_clauses_read;
   }
 
@@ -300,7 +304,7 @@ auto parse_cnf_gz_file(cnf_gz_file& file, UnaryFn&& clause_receiver)
     throw std::invalid_argument{"invalid amount of clauses in CNF data"};
   }
 
-  if (chunk_result.ended_within_clause) {
+  if (!chunk_result.open_clause.empty()) {
     throw std::invalid_argument{"cnf data ended in open clause"};
   }
 }
@@ -328,13 +332,13 @@ void parse_cnf_string(std::string const& cnf, UnaryFn&& clause_receiver)
   using namespace detail;
 
   problem_header header = parse_cnf_header_line(cnf);
-  auto const result = parse_cnf_chunk(cnf, header.header_size, clause_receiver);
+  auto const result = parse_cnf_chunk(cnf, header.header_size, {}, clause_receiver);
 
   if (result.num_clauses_read != header.num_clauses) {
     throw std::invalid_argument{"invalid amount of clauses in CNF data"};
   }
 
-  if (result.ended_within_clause) {
+  if (!result.open_clause.empty()) {
     throw std::invalid_argument{"cnf data ended in open clause"};
   }
 }

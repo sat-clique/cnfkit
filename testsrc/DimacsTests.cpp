@@ -125,6 +125,27 @@ TEST_P(DimacsParsingTests, ParseFromFile)
 
 using namespace cnfkit_literals;
 
+namespace {
+std::string create_huge_cnf()
+{
+  std::string result = "p cnf " + std::to_string(detail::default_chunk_size + 1) + "  " +
+                       std::to_string(detail::default_chunk_size) + "\n";
+  for (uint32_t i = 1; i <= detail::default_chunk_size; ++i) {
+    result += std::to_string(i) + " -" + std::to_string(i + 1) + " 0 ";
+  }
+  return result;
+}
+
+trivial_formula create_huge_expected_formula()
+{
+  trivial_formula result;
+  for (uint32_t i = 1; i <= detail::default_chunk_size; ++i) {
+    result.push_back({lit{var{i}, true}, lit{var{i + 1}, false}});
+  }
+  return result;
+}
+}
+
 // clang-format off
 INSTANTIATE_TEST_SUITE_P(DimacsParsingTests, DimacsParsingTests,
   ::testing::Values(
@@ -200,7 +221,9 @@ INSTANTIATE_TEST_SUITE_P(DimacsParsingTests, DimacsParsingTests,
 
     std::make_tuple("parsing problem containing variable > max variable (max int32 + 1) fails",
       "p cnf 1 1 " + std::to_string(static_cast<int64_t>(std::numeric_limits<int>::max()) + 1) + " 0",
-      parse_error{})
+      parse_error{}),
+
+    std::make_tuple("parsing huge cnf", create_huge_cnf(), create_huge_expected_formula())
   )
 );
 // clang-format on
