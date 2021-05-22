@@ -45,6 +45,6 @@ void parse_cnf_string(std::string const& cnf, UnaryFn&& clause_receiver)
   dimacs_problem_header header = parse_cnf_header_line(cnf);
   cnf_chunk_parser parser;
   parser.parse(cnf, header.header_size, clause_receiver);
-  parser.check_on_finish(header);
+  parser.check_on_dimacs_finish(header);
 }
 }

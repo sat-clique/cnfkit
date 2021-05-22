@@ -90,7 +90,13 @@ using namespace cnfkit_literals;
 // clang-format off
 INSTANTIATE_TEST_SUITE_P(DratParsingTests, DratParsingTests,
   ::testing::Values(
-    std::make_tuple("parsing empty proof succeeds", "", trivial_proof{})
+    std::make_tuple("parsing empty proof succeeds", "", trivial_proof{}),
+    std::make_tuple("parsing proof with single illegal char fails", "x", parse_error{}),
+    std::make_tuple("parsing proof with illegal char in clause fails (1)", "1 x 2 0", parse_error{}),
+    std::make_tuple("parsing proof with illegal char in clause fails (2)", "1x 2 0", parse_error{}),
+    std::make_tuple("parsing proof consisting of empty clause succeeds", "0", trivial_proof{proof_clause{1, {}}}),
+    std::make_tuple("parsing proof ending in open clause fails (1)", "1 2 3", parse_error{}),
+    std::make_tuple("parsing proof ending in open clause fails (2)", "1 2 3 0 1 2", parse_error{})
   )
 );
 // clang-format on

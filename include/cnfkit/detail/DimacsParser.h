@@ -68,6 +68,6 @@ auto parse_cnf_gz_file(cnf_gz_file& file, UnaryFn&& clause_receiver)
     parser.parse(buffer, 0, clause_receiver);
   }
 
-  parser.check_on_finish(header);
+  parser.check_on_dimacs_finish(header);
 }
 }

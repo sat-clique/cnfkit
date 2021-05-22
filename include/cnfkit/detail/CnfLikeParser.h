@@ -230,14 +230,21 @@ public:
     }
   }
 
-  void check_on_finish(dimacs_problem_header const& header)
+  void check_on_dimacs_finish(dimacs_problem_header const& header)
   {
     if (m_num_clauses_read != header.num_clauses) {
       throw std::invalid_argument{"invalid number of clauses in CNF data"};
     }
 
     if (!m_lit_buffer.empty()) {
-      throw std::invalid_argument{"CNF data ended in open clause"};
+      throw std::invalid_argument{"CNF data ends in open clause"};
+    }
+  }
+
+  void check_on_drat_finish()
+  {
+    if (!m_lit_buffer.empty()) {
+      throw std::invalid_argument{"Proof data ends in open clause"};
     }
   }
 
