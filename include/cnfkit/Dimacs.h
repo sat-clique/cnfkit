@@ -43,8 +43,12 @@ void parse_cnf_string(std::string const& cnf, UnaryFn&& clause_receiver)
   using namespace detail;
 
   dimacs_problem_header header = parse_cnf_header_line(cnf);
-  cnf_chunk_parser parser;
-  parser.parse(cnf, header.header_size, clause_receiver);
+  cnf_chunk_parser parser{cnf_chunk_parser_mode::dimacs};
+  parser.parse(cnf,
+               header.header_size,
+               [&clause_receiver](bool /*ignored*/, std::vector<lit> const& clause) {
+                 clause_receiver(clause);
+               });
   parser.check_on_dimacs_finish(header);
 }
 }

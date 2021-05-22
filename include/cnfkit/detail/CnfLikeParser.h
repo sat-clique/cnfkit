@@ -11,7 +11,10 @@
 #include <stdexcept>
 #include <string>
 
+
 namespace cnfkit::detail {
+
+constexpr size_t default_chunk_size = (1 << 16);
 
 inline auto is_irrelevant_line(std::string const& line) -> bool
 {
@@ -180,8 +183,12 @@ struct dimacs_problem_header {
   size_t header_size = 0;
 };
 
+enum class cnf_chunk_parser_mode { dimacs, drat };
+
 class cnf_chunk_parser {
 public:
+  explicit cnf_chunk_parser(cnf_chunk_parser_mode mode) : m_mode{mode} {}
+
   template <typename UnaryFn>
   void parse(std::string const& buffer, size_t offset, UnaryFn&& clause_receiver)
   {
@@ -198,17 +205,28 @@ public:
 
     int literal = 0;
     while (cursor != end) {
-      auto const [past_comments, ended_in_comment] = skip_dimacs_comments(cursor, end);
+      auto [next_lit, ended_in_comment] = skip_dimacs_comments(cursor, end);
 
-      if (past_comments == end) {
-        m_is_in_comment = ended_in_comment;
+      m_is_in_comment = ended_in_comment;
+      if (next_lit == end) {
         return;
       }
-      else {
-        m_is_in_comment = false;
+
+      if (m_mode == cnf_chunk_parser_mode::drat && *next_lit == 'd') {
+        if (!m_lit_buffer.empty()) {
+          throw std::invalid_argument{"syntax error: d may only occur before clauses"};
+        }
+
+        auto past_delete = skip_whitespace(next_lit + 1, end);
+        if (past_delete == next_lit + 1) {
+          throw std::invalid_argument{"syntax error: d must be followed by whitespace"};
+        }
+
+        next_lit = past_delete;
+        m_is_in_delete = true;
       }
 
-      auto [next, errorcode] = std::from_chars(&*past_comments, c_end, literal);
+      auto [next, errorcode] = std::from_chars(&*next_lit, c_end, literal);
 
       if (errorcode != std::errc{}) {
         if (next == c_end) {
@@ -221,7 +239,8 @@ public:
         m_lit_buffer.push_back(dimacs_to_lit(literal));
       }
       else {
-        clause_receiver(m_lit_buffer);
+        clause_receiver(!m_is_in_delete, m_lit_buffer);
+        m_is_in_delete = false;
         m_lit_buffer.clear();
         ++m_num_clauses_read;
       }
@@ -243,15 +262,17 @@ public:
 
   void check_on_drat_finish()
   {
-    if (!m_lit_buffer.empty()) {
+    if (!m_lit_buffer.empty() || m_is_in_delete) {
       throw std::invalid_argument{"Proof data ends in open clause"};
     }
   }
 
 private:
+  cnf_chunk_parser_mode m_mode;
   size_t m_num_clauses_read = 0;
   std::vector<lit> m_lit_buffer;
   bool m_is_in_comment = false;
+  bool m_is_in_delete = false;
 };
 
 }

@@ -94,9 +94,20 @@ INSTANTIATE_TEST_SUITE_P(DratParsingTests, DratParsingTests,
     std::make_tuple("parsing proof with single illegal char fails", "x", parse_error{}),
     std::make_tuple("parsing proof with illegal char in clause fails (1)", "1 x 2 0", parse_error{}),
     std::make_tuple("parsing proof with illegal char in clause fails (2)", "1x 2 0", parse_error{}),
-    std::make_tuple("parsing proof consisting of empty clause succeeds", "0", trivial_proof{proof_clause{1, {}}}),
+    std::make_tuple("parsing proof consisting of empty clause", "0", trivial_proof{proof_clause{1, {}}}),
     std::make_tuple("parsing proof ending in open clause fails (1)", "1 2 3", parse_error{}),
-    std::make_tuple("parsing proof ending in open clause fails (2)", "1 2 3 0 1 2", parse_error{})
+    std::make_tuple("parsing proof ending in open clause fails (2)", "1 2 3 0 1 2", parse_error{}),
+    std::make_tuple("parsing proof containing a single unary clause", "-3 0", trivial_proof{proof_clause{1, {-3_lit}}}),
+    std::make_tuple("parsing proof containing a single binary clause", "-3 1 0", trivial_proof{proof_clause{1, {-3_lit, 1_lit}}}),
+
+    std::make_tuple("parsing proof containing a single deleted empty clause", "d 0", trivial_proof{proof_clause{0, {}}}),
+    std::make_tuple("parsing proof containing a single deleted unary clause", "d -3 0", trivial_proof{proof_clause{0, {-3_lit}}}),
+    std::make_tuple("parsing proof with missing space after d fails", "d-3 0", parse_error{}),
+    std::make_tuple("parsing proof containing only d fails", "d", parse_error{}),
+    std::make_tuple("parsing proof ending in open deleted clause fails (1)", "1 2 0 d", parse_error{}),
+    std::make_tuple("parsing proof ending in deleted clause fails (2)", "1 2 0 d 1 2", parse_error{}),
+    std::make_tuple("parsing proof ending in deleted clause fails (3)", "1 2 0 d\nc foo bar\n  c baz", parse_error{}),
+    std::make_tuple("parsing proof ending in deleted clause fails (4)", "1 2 0 d\n", parse_error{})
   )
 );
 // clang-format on
