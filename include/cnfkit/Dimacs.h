@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cnfkit/Literal.h>
+#include <cnfkit/detail/CnfLikeParser.h>
 #include <cnfkit/detail/DimacsParser.h>
 
 #include <filesystem>
