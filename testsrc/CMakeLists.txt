@@ -1,6 +1,9 @@
 add_executable(cnfkit-tests
   DimacsTests.cpp
+  DratTests.cpp
   LiteralTests.cpp
+  TestUtils.cpp
+  TestUtils.h
   TernaryTests.cpp
 )
 

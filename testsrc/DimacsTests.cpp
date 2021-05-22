@@ -1,12 +1,12 @@
 #include <cnfkit/Dimacs.h>
 
+#include "TestUtils.h"
+
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
 #include <filesystem>
 #include <fstream>
-#include <ostream>
-#include <random>
 #include <stdexcept>
 #include <string>
 #include <variant>
@@ -23,7 +23,6 @@ struct parse_error {
 
 using trivial_formula = std::vector<std::vector<lit>>;
 
-
 using DimacsParsingTestSpec =
     std::tuple<std::string,                               // description
                std::string,                               // input
@@ -38,49 +37,6 @@ public:
   {
     return std::get<2>(GetParam());
   }
-};
-
-auto operator<<(std::ostream& stream, lit it) -> std::ostream&
-{
-  stream << (it.is_positive() ? 1 : -1) * static_cast<int64_t>(it.get_var().get_raw_value());
-  return stream;
-}
-
-class temp_dir {
-public:
-  constexpr static size_t max_tries = 1024;
-
-  temp_dir(std::string const& name_prefix)
-  {
-    fs::path const base_path = fs::temp_directory_path();
-
-    std::mt19937_64 rng{std::random_device{}()};
-    std::uniform_int_distribution<size_t> uniform_distribution;
-
-    for (size_t i = 0; i < max_tries; ++i) {
-      fs::path candidate = base_path / (name_prefix + std::to_string(uniform_distribution(rng)));
-      std::error_code ignored;
-      if (fs::create_directory(candidate, ignored)) {
-        m_path = candidate;
-        break;
-      }
-    }
-
-    if (m_path.empty()) {
-      throw std::runtime_error{"Creating a temporary directory failed"};
-    }
-  }
-
-  ~temp_dir()
-  {
-    std::error_code ignored;
-    fs::remove_all(m_path, ignored);
-  }
-
-  auto get_path() const -> fs::path const& { return m_path; }
-
-private:
-  fs::path m_path;
 };
 
 TEST_P(DimacsParsingTests, ParseFromString)
