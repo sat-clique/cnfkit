@@ -174,7 +174,7 @@ inline auto dimacs_to_lit(int dimacs_lit) -> lit
   return lit{var{static_cast<uint32_t>(variable)}, dimacs_lit > 0};
 }
 
-struct problem_header {
+struct dimacs_problem_header {
   size_t num_vars = 0;
   size_t num_clauses = 0;
   size_t header_size = 0;
@@ -230,7 +230,7 @@ public:
     }
   }
 
-  void check_on_finish(problem_header const& header)
+  void check_on_finish(dimacs_problem_header const& header)
   {
     if (m_num_clauses_read != header.num_clauses) {
       throw std::invalid_argument{"invalid number of clauses in CNF data"};

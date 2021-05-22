@@ -12,7 +12,7 @@
 
 namespace cnfkit::detail {
 
-inline auto parse_cnf_header_line(std::string_view buffer) -> problem_header
+inline auto parse_cnf_header_line(std::string_view buffer) -> dimacs_problem_header
 {
   auto const [buffer_past_comments, ended_in_comment] =
       skip_dimacs_comments(buffer.begin(), buffer.end());
@@ -26,7 +26,7 @@ inline auto parse_cnf_header_line(std::string_view buffer) -> problem_header
       throw std::invalid_argument{"Syntax error in CNF header"};
     }
 
-    problem_header result;
+    dimacs_problem_header result;
 
     result.header_size = header_match[0].second - header_match[0].first +
                          std::distance(buffer.begin(), buffer_past_comments);
@@ -57,7 +57,7 @@ template <typename UnaryFn>
 auto parse_cnf_gz_file(cnf_gz_file& file, UnaryFn&& clause_receiver)
 {
   std::string const header_line = file.read_header_line();
-  problem_header header = parse_cnf_header_line(header_line);
+  dimacs_problem_header header = parse_cnf_header_line(header_line);
 
   cnf_chunk_parser parser;
   parser.parse(header_line, header.header_size, clause_receiver);
