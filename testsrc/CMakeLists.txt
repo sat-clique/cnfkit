@@ -1,4 +1,5 @@
 add_executable(cnfkit-tests
+  ClauseTests.cpp
   DimacsTests.cpp
   DratTests.cpp
   LiteralTests.cpp
