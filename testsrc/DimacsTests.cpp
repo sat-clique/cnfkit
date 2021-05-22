@@ -40,7 +40,7 @@ public:
   }
 };
 
-std::ostream& operator<<(std::ostream& stream, lit it)
+auto operator<<(std::ostream& stream, lit it) -> std::ostream&
 {
   stream << (it.is_positive() ? 1 : -1) * static_cast<int64_t>(it.get_var().get_raw_value());
   return stream;
@@ -77,7 +77,7 @@ public:
     fs::remove_all(m_path, ignored);
   }
 
-  fs::path const& get_path() const { return m_path; }
+  auto get_path() const -> fs::path const& { return m_path; }
 
 private:
   fs::path m_path;
@@ -126,7 +126,7 @@ TEST_P(DimacsParsingTests, ParseFromFile)
 using namespace cnfkit_literals;
 
 namespace {
-std::string create_huge_cnf()
+auto create_huge_cnf() -> std::string
 {
   std::string result = "p cnf " + std::to_string(detail::default_chunk_size + 1) + "  " +
                        std::to_string(detail::default_chunk_size) + "\n";
@@ -136,13 +136,22 @@ std::string create_huge_cnf()
   return result;
 }
 
-trivial_formula create_huge_expected_formula()
+auto create_huge_expected_formula() -> trivial_formula
 {
   trivial_formula result;
   for (uint32_t i = 1; i <= detail::default_chunk_size; ++i) {
     result.push_back({lit{var{i}, true}, lit{var{i + 1}, false}});
   }
   return result;
+}
+
+auto create_cnf_with_huge_comment() -> std::string
+{
+  std::string result = "p cnf 10 1\nc ";
+  while (result.size() <= 2 * detail::default_chunk_size) {
+    result += "1 2 3 0 ";
+  }
+  return result + "\n4 0";
 }
 }
 
@@ -223,7 +232,9 @@ INSTANTIATE_TEST_SUITE_P(DimacsParsingTests, DimacsParsingTests,
       "p cnf 1 1 " + std::to_string(static_cast<int64_t>(std::numeric_limits<int>::max()) + 1) + " 0",
       parse_error{}),
 
-    std::make_tuple("parsing huge cnf", create_huge_cnf(), create_huge_expected_formula())
+    std::make_tuple("parsing huge cnf", create_huge_cnf(), create_huge_expected_formula()),
+
+    std::make_tuple("parsing cnf with huge comment", create_cnf_with_huge_comment(), trivial_formula{{4_lit}})
   )
 );
 // clang-format on

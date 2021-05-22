@@ -160,17 +160,20 @@ auto skip_to_line_end(It start, It stop) -> It
 }
 
 template <typename It>
-auto skip_dimacs_comments(It start, It stop) -> It
+auto skip_dimacs_comments(It start, It stop) -> std::pair<It, bool>
 {
   auto iter = skip_whitespace(start, stop);
 
   while (iter != stop && *iter == 'c') {
     ++iter;
     iter = skip_to_line_end(iter, stop);
+    if (iter == stop) {
+      return std::make_pair(iter, true);
+    }
     iter = skip_whitespace(iter, stop);
   }
 
-  return iter;
+  return std::make_pair(iter, false);
 }
 
 struct problem_header {
@@ -181,7 +184,10 @@ struct problem_header {
 
 inline auto parse_cnf_header_line(std::string_view buffer) -> problem_header
 {
-  auto const buffer_past_comments = skip_dimacs_comments(buffer.begin(), buffer.end());
+  auto const [buffer_past_comments, ended_in_comment] =
+      skip_dimacs_comments(buffer.begin(), buffer.end());
+  // ignoring ended_in_comment since it can only be true if
+  // buffer_past_comments == buffer.end(), causing parse failure
 
   std::regex const header_regex{"^\\s*p\\s*cnf\\s*([0-9]+)\\s*([0-9]+)"};
   std::match_results<std::string_view::const_iterator> header_match;
@@ -238,20 +244,30 @@ public:
     auto const end = buffer.begin() + buffer.size();
     auto cursor = buffer.begin() + offset;
 
-    int literal = 0;
+    if (m_is_in_comment) {
+      cursor = skip_to_line_end(cursor, end);
+      if (cursor != end) {
+        m_is_in_comment = false;
+      }
+    }
 
+    int literal = 0;
     while (cursor != end) {
-      auto const past_comments = skip_dimacs_comments(cursor, end);
+      auto const [past_comments, ended_in_comment] = skip_dimacs_comments(cursor, end);
 
       if (past_comments == end) {
-        break;
+        m_is_in_comment = ended_in_comment;
+        return;
+      }
+      else {
+        m_is_in_comment = false;
       }
 
       auto [next, errorcode] = std::from_chars(&*past_comments, c_end, literal);
 
       if (errorcode != std::errc{}) {
         if (next == c_end) {
-          break;
+          return;
         }
         throw std::invalid_argument{"syntax error"};
       }
