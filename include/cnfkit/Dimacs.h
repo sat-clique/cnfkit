@@ -228,57 +228,63 @@ inline auto dimacs_to_lit(int dimacs_lit) -> lit
   return lit{var{static_cast<uint32_t>(variable)}, dimacs_lit > 0};
 }
 
-struct parse_cnf_chunk_result {
-  size_t num_clauses_read = 0;
-  std::vector<lit> open_clause;
-};
 
-template <typename UnaryFn>
-auto parse_cnf_chunk(std::string const& buffer,
-                     size_t offset,
-                     std::vector<lit> open_clause,
-                     UnaryFn&& clause_receiver) -> parse_cnf_chunk_result
-{
-  size_t num_clauses_read = 0;
+class cnf_chunk_parser {
+public:
+  template <typename UnaryFn>
+  void parse(std::string const& buffer, size_t offset, UnaryFn&& clause_receiver)
+  {
+    char const* c_end = buffer.c_str() + buffer.size();
+    auto const end = buffer.begin() + buffer.size();
+    auto cursor = buffer.begin() + offset;
 
-  char const* c_end = buffer.c_str() + buffer.size();
-  auto const end = buffer.begin() + buffer.size();
-  auto cursor = buffer.begin() + offset;
+    int literal = 0;
 
-  std::vector<lit> lit_buffer = open_clause;
+    while (cursor != end) {
+      auto const past_comments = skip_dimacs_comments(cursor, end);
 
-  int literal = 0;
-
-  while (cursor != end) {
-    auto const past_comments = skip_dimacs_comments(cursor, end);
-
-    if (past_comments == end) {
-      break;
-    }
-
-    auto [next, errorcode] = std::from_chars(&*past_comments, c_end, literal);
-
-    if (errorcode != std::errc{}) {
-      if (next == c_end) {
+      if (past_comments == end) {
         break;
       }
-      throw std::invalid_argument{"syntax error"};
-    }
 
-    if (literal != 0) {
-      lit_buffer.push_back(dimacs_to_lit(literal));
-    }
-    else {
-      clause_receiver(lit_buffer);
-      lit_buffer.clear();
-      ++num_clauses_read;
-    }
+      auto [next, errorcode] = std::from_chars(&*past_comments, c_end, literal);
 
-    cursor = buffer.begin() + (next - buffer.c_str());
+      if (errorcode != std::errc{}) {
+        if (next == c_end) {
+          break;
+        }
+        throw std::invalid_argument{"syntax error"};
+      }
+
+      if (literal != 0) {
+        m_lit_buffer.push_back(dimacs_to_lit(literal));
+      }
+      else {
+        clause_receiver(m_lit_buffer);
+        m_lit_buffer.clear();
+        ++m_num_clauses_read;
+      }
+
+      cursor = buffer.begin() + (next - buffer.c_str());
+    }
   }
 
-  return {num_clauses_read, lit_buffer};
-}
+  void check_on_finish(problem_header const& header)
+  {
+    if (m_num_clauses_read != header.num_clauses) {
+      throw std::invalid_argument{"invalid number of clauses in CNF data"};
+    }
+
+    if (!m_lit_buffer.empty()) {
+      throw std::invalid_argument{"CNF data ended in open clause"};
+    }
+  }
+
+private:
+  size_t m_num_clauses_read = 0;
+  std::vector<lit> m_lit_buffer;
+  bool m_is_in_comment = false;
+};
 
 
 constexpr size_t default_chunk_size = (1 << 16);
@@ -289,24 +295,16 @@ auto parse_cnf_gz_file(cnf_gz_file& file, UnaryFn&& clause_receiver)
   std::string const header_line = file.read_header_line();
   problem_header header = parse_cnf_header_line(header_line);
 
-  std::string buffer;
-  parse_cnf_chunk_result chunk_result =
-      parse_cnf_chunk(header_line, header.header_size, {}, clause_receiver);
-  size_t num_clauses = chunk_result.num_clauses_read;
+  cnf_chunk_parser parser;
+  parser.parse(header_line, header.header_size, clause_receiver);
 
+  std::string buffer;
   while (!file.is_eof()) {
     file.read_chunk(default_chunk_size, buffer);
-    chunk_result = parse_cnf_chunk(buffer, 0, chunk_result.open_clause, clause_receiver);
-    num_clauses += chunk_result.num_clauses_read;
+    parser.parse(buffer, 0, clause_receiver);
   }
 
-  if (num_clauses != header.num_clauses) {
-    throw std::invalid_argument{"invalid amount of clauses in CNF data"};
-  }
-
-  if (!chunk_result.open_clause.empty()) {
-    throw std::invalid_argument{"cnf data ended in open clause"};
-  }
+  parser.check_on_finish(header);
 }
 }
 
@@ -332,14 +330,8 @@ void parse_cnf_string(std::string const& cnf, UnaryFn&& clause_receiver)
   using namespace detail;
 
   problem_header header = parse_cnf_header_line(cnf);
-  auto const result = parse_cnf_chunk(cnf, header.header_size, {}, clause_receiver);
-
-  if (result.num_clauses_read != header.num_clauses) {
-    throw std::invalid_argument{"invalid amount of clauses in CNF data"};
-  }
-
-  if (!result.open_clause.empty()) {
-    throw std::invalid_argument{"cnf data ended in open clause"};
-  }
+  cnf_chunk_parser parser;
+  parser.parse(cnf, header.header_size, clause_receiver);
+  parser.check_on_finish(header);
 }
 }
