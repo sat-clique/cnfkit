@@ -15,7 +15,7 @@
 
 namespace cnfkit::detail {
 
-auto is_irrelevant_line(std::string const& line) -> bool
+inline auto is_irrelevant_line(std::string const& line) -> bool
 {
   return std::regex_match(line, std::regex{"\\s*"}) ||
          std::regex_match(line, std::regex{"\\s*c.*"});

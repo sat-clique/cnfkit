@@ -18,7 +18,7 @@ template <typename UnaryFn>
 void parse_cnf_string(std::string const& cnf, UnaryFn&& clause_receiver);
 
 
-/*** Implementation ***/
+// *** Implementation ***
 
 template <typename UnaryFn>
 void parse_cnf_file(std::filesystem::path const& input_file, UnaryFn&& clause_receiver)
@@ -33,7 +33,7 @@ void parse_cnf_from_stdin(UnaryFn&& clause_receiver)
 {
   using namespace detail;
   cnf_gz_file stdin_file;
-  parse_cnf_fz_file(stdin_file, clause_receiver);
+  parse_cnf_gz_file(stdin_file, clause_receiver);
 }
 
 template <typename UnaryFn>
