@@ -235,6 +235,6 @@ constexpr auto operator>(lit const& lhs, lit const& rhs) -> bool
 
 constexpr auto operator>=(lit const& lhs, lit const& rhs) -> bool
 {
-  return lhs.get_raw_value() > rhs.get_raw_value();
+  return lhs.get_raw_value() >= rhs.get_raw_value();
 }
 }
