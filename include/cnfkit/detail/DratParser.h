@@ -2,9 +2,14 @@
 
 #include <cnfkit/detail/CnfLikeParser.h>
 
+#include <array>
 #include <filesystem>
 #include <string>
 #include <vector>
+
+namespace cnfkit {
+enum class drat_format { text, binary };
+}
 
 namespace cnfkit::detail {
 
@@ -98,13 +103,6 @@ private:
   bool m_is_in_clause = false;
 };
 
-template <typename It>
-inline bool is_binary_drat(It start, It stop)
-{
-  // TODO: only scan the first 10 chars
-  return std::find(start, stop, 0) != stop;
-}
-
 template <typename BinaryFn>
 auto parse_drat_text_gz_file(cnf_gz_file& file, BinaryFn&& clause_receiver)
 {
@@ -120,23 +118,25 @@ auto parse_drat_text_gz_file(cnf_gz_file& file, BinaryFn&& clause_receiver)
 }
 
 template <typename BinaryFn>
-void parse_drat_file_impl(std::filesystem::path const& input_file, BinaryFn&& clause_receiver)
+void parse_drat_file_impl(std::filesystem::path const& input_file,
+                          drat_format format,
+                          BinaryFn&& clause_receiver)
 {
   cnf_gz_file file{input_file};
   parse_drat_text_gz_file(file, clause_receiver);
 }
 
 template <typename BinaryFn>
-void parse_drat_from_stdin_impl(BinaryFn&& clause_receiver)
+void parse_drat_from_stdin_impl(drat_format format, BinaryFn&& clause_receiver)
 {
   cnf_gz_file stdin_file;
   parse_drat_text_gz_file(stdin_file, clause_receiver);
 }
 
 template <typename BinaryFn>
-void parse_drat_string_impl(std::string const& drat, BinaryFn&& clause_receiver)
+void parse_drat_string_impl(std::string const& drat, drat_format format, BinaryFn&& clause_receiver)
 {
-  if (is_binary_drat(drat.begin(), drat.end())) {
+  if (format == drat_format::binary) {
     drat_binary_chunk_parser parser;
     parser.parse(drat.begin(), drat.end(), clause_receiver);
     parser.check_on_drat_finish();
