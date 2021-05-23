@@ -162,6 +162,7 @@ INSTANTIATE_TEST_SUITE_P(DratParsingTests, DratParsingTests,
       }
     ),
 
+    std::make_tuple("parsing empty binary proof", std::vector<char>{}, trivial_proof{}),
     std::make_tuple("parsing binary proof ending in open clause fails (1)", std::vector<char>{'\x64'}, parse_error{}),
     std::make_tuple("parsing binary proof ending in open clause fails (2)", std::vector<char>{'\x64', '\x7f'}, parse_error{}),
     std::make_tuple("parsing binary proof ending in partial literal fails", std::vector<char>{'\x64', '\x83', '\x80'}, parse_error{}),
