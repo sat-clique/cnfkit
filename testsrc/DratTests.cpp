@@ -107,7 +107,48 @@ INSTANTIATE_TEST_SUITE_P(DratParsingTests, DratParsingTests,
     std::make_tuple("parsing proof ending in open deleted clause fails (1)", "1 2 0 d", parse_error{}),
     std::make_tuple("parsing proof ending in deleted clause fails (2)", "1 2 0 d 1 2", parse_error{}),
     std::make_tuple("parsing proof ending in deleted clause fails (3)", "1 2 0 d\nc foo bar\n  c baz", parse_error{}),
-    std::make_tuple("parsing proof ending in deleted clause fails (4)", "1 2 0 d\n", parse_error{})
+    std::make_tuple("parsing proof ending in deleted clause fails (4)", "1 2 0 d\n", parse_error{}),
+
+    std::make_tuple("parsing binary proof with single added empty clause",
+      std::string{0x61, 0}, trivial_proof{proof_clause{true, {}}}),
+
+    std::make_tuple("parsing binary proof with single deleted empty clause",
+      std::string{0x64, 0}, trivial_proof{proof_clause{false, {}}}),
+
+    std::make_tuple("parsing binary proof with single added unary clause (binary len 1, negative)",
+      std::string{0x61, 0x7f, 0}, trivial_proof{proof_clause{true, {-63_lit}}}),
+
+    std::make_tuple("parsing binary proof with single added unary clause (binary len 1, positive)",
+      std::string{0x61, 0x02, 0}, trivial_proof{proof_clause{true, {1_lit}}}),
+
+    std::make_tuple("parsing binary proof with single added unary clause (binary len 2, negative)",
+      std::string{0x61, '\x81', 0x01, 0}, trivial_proof{proof_clause{true, {-64_lit}}}),
+
+    std::make_tuple("parsing binary proof with single added unary clause (binary len 2, positive)",
+      std::string{0x61, '\x80', 0x01, 0}, trivial_proof{proof_clause{true, {64_lit}}}),
+
+    std::make_tuple("parsing binary proof with single added unary clause (binary len 3)",
+      std::string{0x61, '\x83', '\x80', '\x01', 0}, trivial_proof{proof_clause{true, {-8193_lit}}}),
+
+    std::make_tuple("parsing binary proof with single added unary clause (binary len 5)",
+      std::string{0x61, '\x87', '\x80', '\x80', '\x80', '\x01', 0}, trivial_proof{proof_clause{true, {-134217731_lit}}}),
+
+    std::make_tuple("parsing binary proof with two binary clauses",
+      std::string{'\x64', '\x7f', '\x83', '\x80', '\x01', '\x00', '\x61', '\x82', '\x02', '\xff', '\x7f', '\x00'},
+      trivial_proof{
+        proof_clause{false, {-63_lit, -8193_lit}},
+        proof_clause{true, {129_lit, -8191_lit}}
+      }
+    ),
+
+    std::make_tuple("parsing binary proof ending in open clause fails (1)", std::string{'\x64'}, parse_error{}),
+    std::make_tuple("parsing binary proof ending in open clause fails (2)", std::string{'\x64', '\x7f'}, parse_error{}),
+    std::make_tuple("parsing binary proof ending in partial literal fails", std::string{'\x64', '\x83', '\x80'}, parse_error{}),
+    std::make_tuple("parsing binary proof with clause ending in partial literal fails", std::string{'\x64', '\x83', '\x80', 0}, parse_error{}),
+    std::make_tuple("parsing binary proof with clause not starting with a or d fails", std::string{'\x64', '\x7f', 0, '\x70', '\x7f', 0}, parse_error{}),
+    std::make_tuple("parsing binary proof containing double-zero fails", std::string{'\x64', '\x7f', 0, 0, '\x61', '\x7f', 0}, parse_error{}),
+
+    std::make_tuple("parsing binary proof containing out-of-range literal fails", std::string{'\x64', '\xff', '\xff', '\xff', '\xff', '\x7f', 0}, parse_error{})
   )
 );
 // clang-format on

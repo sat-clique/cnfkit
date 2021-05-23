@@ -3,7 +3,7 @@
 #include <cnfkit/Literal.h>
 
 #include <filesystem>
-#include <iosfwd>
+#include <ostream>
 #include <string>
 
 
