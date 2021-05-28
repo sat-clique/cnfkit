@@ -1,4 +1,4 @@
-#include <cnfkit/Dimacs.h>
+#include <cnfkit/DimacsParser.h>
 
 #include "TestUtils.h"
 

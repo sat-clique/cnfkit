@@ -1,4 +1,4 @@
-#include <cnfkit/Drat.h>
+#include <cnfkit/DratParser.h>
 
 #include "TestUtils.h"
 
