@@ -91,7 +91,7 @@ TYPED_TEST(ClauseTests, LiteralsAreZeroInitialized)
   test_clause* clause = test_clause::base::construct_in(buf, 10);
 
   for (lit const& literal : *clause) {
-    EXPECT_THAT(literal, Eq(-0_lit));
+    EXPECT_THAT(literal, Eq(lit{var{0}, false}));
   }
 }
 }

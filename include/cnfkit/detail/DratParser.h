@@ -42,13 +42,13 @@ auto parse_drat_binary_lit(It start, It stop) -> std::pair<lit, It>
     throw std::invalid_argument{"unexpected end of binary drat literal"};
   }
 
-  uint32_t const raw_cnfkit_var = raw_lit / 2;
-
-  if (raw_cnfkit_var > max_raw_var) {
-    throw std::invalid_argument{"literal out of range"};
+  uint32_t const raw_var = raw_lit / 2;
+  if (raw_var == 0) {
+    throw std::invalid_argument{"invalid variable 0"};
   }
+  var const cnfkit_var = var{raw_var - 1};
 
-  lit result{var{raw_cnfkit_var}, (raw_lit & 1) == 0};
+  lit result{cnfkit_var, (raw_lit & 1) == 0};
 
   return {result, cursor};
 }

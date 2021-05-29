@@ -5,6 +5,7 @@
 #include <cmath>
 #include <cstdint>
 #include <limits>
+#include <stdexcept>
 
 namespace cnfkit {
 
@@ -24,9 +25,6 @@ private:
   uint32_t m_raw_value;
 };
 
-constexpr uint32_t max_raw_var = 0x7FFFFFFF;
-constexpr var invalid_var(max_raw_var + 1);
-
 class lit {
 public:
   constexpr lit(var variable, bool is_positive) noexcept;
@@ -37,7 +35,6 @@ public:
 
   constexpr auto operator-() const noexcept -> lit;
   constexpr auto get_raw_value() const noexcept -> uint32_t;
-  constexpr auto is_valid() const noexcept -> bool;
 
   auto operator++(int) noexcept -> lit&;
   auto operator++() noexcept -> lit;
@@ -52,13 +49,20 @@ private:
   uint32_t m_raw_value;
 };
 
+constexpr var max_var = var{std::numeric_limits<uint32_t>::max() / 2};
+
 namespace cnfkit_literals {
 constexpr auto operator"" _lit(unsigned long long n) noexcept -> lit;
 constexpr auto operator"" _var(unsigned long long n) noexcept -> var;
+constexpr auto operator"" _dlit(unsigned long long n) noexcept -> lit;
+constexpr auto operator"" _dvar(unsigned long long n) noexcept -> var;
 }
 
-constexpr auto lit_to_dimacs(lit lit) noexcept -> int32_t;
-inline auto dimacs_to_lit(int32_t dimacs_lit) noexcept -> lit;
+inline auto lit_to_dimacs(lit lit) -> int32_t;
+inline auto dimacs_to_lit(int32_t dimacs_lit) -> lit;
+constexpr uint32_t min_dimacs_lit = std::numeric_limits<int32_t>::min() + 1;
+constexpr uint32_t max_dimacs_lit = std::numeric_limits<int32_t>::max();
+
 
 constexpr auto operator==(var lhs, var rhs) noexcept -> bool;
 constexpr auto operator!=(var lhs, var rhs) noexcept -> bool;
@@ -87,6 +91,17 @@ constexpr auto operator"" _var(unsigned long long n) noexcept -> var
 {
   return var{static_cast<uint32_t>(n)};
 }
+
+constexpr auto operator"" _dlit(unsigned long long n) noexcept -> lit
+{
+  return lit{var{static_cast<uint32_t>(n - 1)}, true};
+}
+
+constexpr auto operator"" _dvar(unsigned long long n) noexcept -> var
+{
+  return var{static_cast<uint32_t>(n - 1)};
+}
+
 }
 
 constexpr auto var::get_raw_value() const noexcept -> uint32_t
@@ -142,15 +157,9 @@ constexpr auto lit::operator-() const noexcept -> lit
   return lit{m_raw_value ^ 1};
 }
 
-
 constexpr auto lit::get_raw_value() const noexcept -> uint32_t
 {
   return m_raw_value;
-}
-
-constexpr auto lit::is_valid() const noexcept -> bool
-{
-  return get_var() != invalid_var;
 }
 
 inline auto lit::operator++(int) noexcept -> lit&
@@ -189,25 +198,24 @@ constexpr auto lit::prev_with_same_sign() const noexcept -> lit
   return lit{m_raw_value - 2};
 }
 
-constexpr auto lit_to_dimacs(lit lit) noexcept -> int32_t
+inline auto lit_to_dimacs(lit literal) -> int32_t
 {
-  return static_cast<int32_t>(lit.get_var().get_raw_value()) * (lit.is_positive() ? 1 : -1);
+  uint32_t const raw_abs_value = literal.get_var().get_raw_value() + 1;
+  if (raw_abs_value > std::numeric_limits<int32_t>::max()) {
+    throw std::invalid_argument{"DIMACS literal out of range"};
+  }
+  return static_cast<int32_t>(raw_abs_value) * (literal.is_positive() ? 1 : -1);
 }
 
-inline auto dimacs_to_lit(int32_t dimacs_lit) noexcept -> lit
+inline auto dimacs_to_lit(int32_t dimacs_lit) -> lit
 {
-  if (dimacs_lit == std::numeric_limits<int32_t>::min()) {
-    return lit{invalid_var, false};
+  if (dimacs_lit == 0 || dimacs_lit == std::numeric_limits<int32_t>::min()) {
+    throw std::invalid_argument{"DIMACS literal out of range"};
   }
+  uint32_t const raw_abs_value = static_cast<uint32_t>(std::abs(dimacs_lit)) - 1;
 
-  uint32_t abs_dimacs_lit = std::abs(dimacs_lit);
-  if (abs_dimacs_lit > max_raw_var) {
-    return lit{invalid_var, false};
-  }
-
-  return lit{var{abs_dimacs_lit}, dimacs_lit > 0};
+  return lit{var{raw_abs_value}, dimacs_lit > 0};
 }
-
 
 constexpr auto operator==(var lhs, var rhs) noexcept -> bool
 {

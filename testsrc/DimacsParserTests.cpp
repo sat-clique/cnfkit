@@ -96,7 +96,7 @@ auto create_huge_expected_formula() -> trivial_formula
 {
   trivial_formula result;
   for (uint32_t i = 1; i <= detail::default_chunk_size; ++i) {
-    result.push_back({lit{var{i}, true}, lit{var{i + 1}, false}});
+    result.push_back({lit{var{i - 1}, true}, lit{var{i}, false}});
   }
   return result;
 }
@@ -122,58 +122,58 @@ INSTANTIATE_TEST_SUITE_P(DimacsParsingTests, DimacsParsingTests,
 
     std::make_tuple("parsing empty problem", "p cnf 0 0", trivial_formula{}),
     std::make_tuple("parsing problem with single empty clause", "p cnf 0 1 0", trivial_formula{{}}),
-    std::make_tuple("parsing problem with single unary clause", "p cnf 1 1 -5 0", trivial_formula{{-5_lit}}),
+    std::make_tuple("parsing problem with single unary clause", "p cnf 1 1 -5 0", trivial_formula{{-5_dlit}}),
 
     std::make_tuple("parsing non-integer variables fails", "p cnf 1 1 x 0", parse_error{}),
 
     std::make_tuple("parsing problem with two clauses",
       "p cnf 3 2 -1 2 0 2 -3 1 0",
-      trivial_formula{{-1_lit, 2_lit}, {2_lit, -3_lit, 1_lit}}),
+      trivial_formula{{-1_dlit, 2_dlit}, {2_dlit, -3_dlit, 1_dlit}}),
 
     std::make_tuple("parsing problem with comment line",
       "p cnf 2 1\nc foo\n1 2 0",
-      trivial_formula{{1_lit, 2_lit}}),
+      trivial_formula{{1_dlit, 2_dlit}}),
 
     std::make_tuple("parsing problem with comment line, whitespace before c",
       "p cnf 2 1\n\r\t c foo\n1 2 0",
-      trivial_formula{{1_lit, 2_lit}}),
+      trivial_formula{{1_dlit, 2_dlit}}),
 
     std::make_tuple("parsing problem with whitespace at start of line",
         "p cnf 1 1 \t\v\r\n -5 0",
-        trivial_formula{{-5_lit}}),
+        trivial_formula{{-5_dlit}}),
 
     std::make_tuple("parsing problem with comment in clause",
         "p cnf 2 1\n1\nc foo\n2 0",
-        trivial_formula{{1_lit, 2_lit}}),
+        trivial_formula{{1_dlit, 2_dlit}}),
 
     std::make_tuple("parsing problem with whitespaces and comments",
       "p cnf 10 5\nc \v bar\n\t\t2 3\r\n\r4 0     0 -1 0\t1\r2\n3\v0 1\nc baz   \n -2 0",
-      trivial_formula{{2_lit, 3_lit, 4_lit}, {}, {-1_lit}, {1_lit, 2_lit, 3_lit}, {1_lit, -2_lit}}),
+      trivial_formula{{2_dlit, 3_dlit, 4_dlit}, {}, {-1_dlit}, {1_dlit, 2_dlit, 3_dlit}, {1_dlit, -2_dlit}}),
 
     std::make_tuple("parsing problem with header preceded by comment",
       "c foo\np cnf 1 1\n1 0",
-      trivial_formula{{1_lit}}),
+      trivial_formula{{1_dlit}}),
 
     std::make_tuple("parsing problem with header preceded by multiple comments",
       "c foo\n\nc bar\np cnf 1 1\n1 0",
-      trivial_formula{{1_lit}}),
+      trivial_formula{{1_dlit}}),
 
     std::make_tuple("parsing problem ending with comments",
       "p cnf 1 1\n1 0\nc foo\nc bar",
-      trivial_formula{{1_lit}}),
+      trivial_formula{{1_dlit}}),
 
     std::make_tuple("parsing problem not ending with 0 fails", "p cnf 1 1 -5 0 -1", parse_error{}),
 
     std::make_tuple("parsing problem containing maximum variable",
-      "p cnf 1 1 " + std::to_string(max_raw_var) + " -" + std::to_string(max_raw_var) + " 0",
-      trivial_formula{{lit{var{max_raw_var}, true}, lit{var{max_raw_var}, false}}}),
+      "p cnf 1 1 " + std::to_string(max_var.get_raw_value()) + " -" + std::to_string(max_var.get_raw_value()) + " 0",
+      trivial_formula{{lit{var{max_var.get_raw_value()-1}, true}, lit{var{max_var.get_raw_value()-1}, false}}}),
 
     std::make_tuple("parsing problem containing variable > max variable (positive) fails",
-      "p cnf 1 1 " + std::to_string(max_raw_var + 1) + " 0",
+      "p cnf 1 1 " + std::to_string(max_var.get_raw_value() + 1) + " 0",
       parse_error{}),
 
     std::make_tuple("parsing problem containing variable > max variable (negative) fails",
-      "p cnf 1 1 -" + std::to_string(max_raw_var + 1) + " 0",
+      "p cnf 1 1 -" + std::to_string(max_var.get_raw_value() + 1) + " 0",
       parse_error{}),
 
     std::make_tuple("parsing problem containing variable > max variable (min int32) fails",
@@ -190,7 +190,7 @@ INSTANTIATE_TEST_SUITE_P(DimacsParsingTests, DimacsParsingTests,
 
     std::make_tuple("parsing huge cnf", create_huge_cnf(), create_huge_expected_formula()),
 
-    std::make_tuple("parsing cnf with huge comment", create_cnf_with_huge_comment(), trivial_formula{{4_lit}})
+    std::make_tuple("parsing cnf with huge comment", create_cnf_with_huge_comment(), trivial_formula{{4_dlit}})
   )
 );
 // clang-format on

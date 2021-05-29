@@ -118,11 +118,11 @@ INSTANTIATE_TEST_SUITE_P(DratParsingTests, DratParsingTests,
     std::make_tuple("parsing proof consisting of empty clause", "0", trivial_proof{proof_clause{1, {}}}),
     std::make_tuple("parsing proof ending in open clause fails (1)", "1 2 3", parse_error{}),
     std::make_tuple("parsing proof ending in open clause fails (2)", "1 2 3 0 1 2", parse_error{}),
-    std::make_tuple("parsing proof containing a single unary clause", "-3 0", trivial_proof{proof_clause{1, {-3_lit}}}),
-    std::make_tuple("parsing proof containing a single binary clause", "-3 1 0", trivial_proof{proof_clause{1, {-3_lit, 1_lit}}}),
+    std::make_tuple("parsing proof containing a single unary clause", "-3 0", trivial_proof{proof_clause{1, {-3_dlit}}}),
+    std::make_tuple("parsing proof containing a single binary clause", "-3 1 0", trivial_proof{proof_clause{1, {-3_dlit, 1_dlit}}}),
 
     std::make_tuple("parsing proof containing a single deleted empty clause", "d 0", trivial_proof{proof_clause{0, {}}}),
-    std::make_tuple("parsing proof containing a single deleted unary clause", "d -3 0", trivial_proof{proof_clause{0, {-3_lit}}}),
+    std::make_tuple("parsing proof containing a single deleted unary clause", "d -3 0", trivial_proof{proof_clause{0, {-3_dlit}}}),
     std::make_tuple("parsing proof with missing space after d fails", "d-3 0", parse_error{}),
     std::make_tuple("parsing proof containing only d fails", "d", parse_error{}),
     std::make_tuple("parsing proof ending in open deleted clause fails (1)", "1 2 0 d", parse_error{}),
@@ -137,28 +137,28 @@ INSTANTIATE_TEST_SUITE_P(DratParsingTests, DratParsingTests,
       std::vector<char>{0x64, 0}, trivial_proof{proof_clause{false, {}}}),
 
     std::make_tuple("parsing binary proof with single added unary clause (binary len 1, negative)",
-      std::vector<char>{0x61, 0x7f, 0}, trivial_proof{proof_clause{true, {-63_lit}}}),
+      std::vector<char>{0x61, 0x7f, 0}, trivial_proof{proof_clause{true, {-63_dlit}}}),
 
     std::make_tuple("parsing binary proof with single added unary clause (binary len 1, positive)",
-      std::vector<char>{0x61, 0x02, 0}, trivial_proof{proof_clause{true, {1_lit}}}),
+      std::vector<char>{0x61, 0x02, 0}, trivial_proof{proof_clause{true, {1_dlit}}}),
 
     std::make_tuple("parsing binary proof with single added unary clause (binary len 2, negative)",
-      std::vector<char>{0x61, '\x81', 0x01, 0}, trivial_proof{proof_clause{true, {-64_lit}}}),
+      std::vector<char>{0x61, '\x81', 0x01, 0}, trivial_proof{proof_clause{true, {-64_dlit}}}),
 
     std::make_tuple("parsing binary proof with single added unary clause (binary len 2, positive)",
-      std::vector<char>{0x61, '\x80', 0x01, 0}, trivial_proof{proof_clause{true, {64_lit}}}),
+      std::vector<char>{0x61, '\x80', 0x01, 0}, trivial_proof{proof_clause{true, {64_dlit}}}),
 
     std::make_tuple("parsing binary proof with single added unary clause (binary len 3)",
-      std::vector<char>{0x61, '\x83', '\x80', '\x01', 0}, trivial_proof{proof_clause{true, {-8193_lit}}}),
+      std::vector<char>{0x61, '\x83', '\x80', '\x01', 0}, trivial_proof{proof_clause{true, {-8193_dlit}}}),
 
     std::make_tuple("parsing binary proof with single added unary clause (binary len 5)",
-      std::vector<char>{0x61, '\x87', '\x80', '\x80', '\x80', '\x01', 0}, trivial_proof{proof_clause{true, {-134217731_lit}}}),
+      std::vector<char>{0x61, '\x87', '\x80', '\x80', '\x80', '\x01', 0}, trivial_proof{proof_clause{true, {-134217731_dlit}}}),
 
     std::make_tuple("parsing binary proof with two binary clauses",
       std::vector<char>{'\x64', '\x7f', '\x83', '\x80', '\x01', '\x00', '\x61', '\x82', '\x02', '\xff', '\x7f', '\x00'},
       trivial_proof{
-        proof_clause{false, {-63_lit, -8193_lit}},
-        proof_clause{true, {129_lit, -8191_lit}}
+        proof_clause{false, {-63_dlit, -8193_dlit}},
+        proof_clause{true, {129_dlit, -8191_dlit}}
       }
     ),
 
