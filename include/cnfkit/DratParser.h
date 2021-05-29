@@ -5,6 +5,7 @@
 #include <cnfkit/Literal.h>
 #include <cnfkit/detail/DratParser.h>
 
+#include <cstddef>
 #include <filesystem>
 #include <string>
 
@@ -19,7 +20,12 @@ template <typename BinaryFn>
 void parse_drat_from_stdin(drat_format format, BinaryFn&& clause_receiver);
 
 template <typename BinaryFn>
-void parse_drat_string(std::string const& drat, drat_format format, BinaryFn&& clause_receiver);
+void parse_drat_string(std::string const& drat, BinaryFn&& clause_receiver);
+
+template <typename BinaryFn>
+void parse_drat_binary_buffer(std::byte const* start,
+                              std::byte const* stop,
+                              BinaryFn&& clause_receiver);
 
 
 // *** Implementation ***
@@ -39,8 +45,17 @@ void parse_drat_from_stdin(drat_format format, BinaryFn&& clause_receiver)
 }
 
 template <typename BinaryFn>
-void parse_drat_string(std::string const& drat, drat_format format, BinaryFn&& clause_receiver)
+void parse_drat_string(std::string const& drat, BinaryFn&& clause_receiver)
 {
-  detail::parse_drat_string_impl(drat, format, clause_receiver);
+  detail::parse_drat_string_impl(drat, clause_receiver);
 }
+
+template <typename BinaryFn>
+void parse_drat_binary_buffer(std::byte const* start,
+                              std::byte const* stop,
+                              BinaryFn&& clause_receiver)
+{
+  detail::parse_drat_binary_buffer_impl(start, stop, clause_receiver);
+}
+
 }

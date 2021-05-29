@@ -58,28 +58,44 @@ public:
   }
 };
 
-TEST_P(DratParsingTests, ParseFromString)
+namespace {
+template <typename BinaryFn>
+void parse_drat_string_or_binary(std::string const& input,
+                                 drat_format format,
+                                 BinaryFn&& clause_receiver)
 {
-  DratParsingTestSpec spec = GetParam();
+  if (format == drat_format::text) {
+    parse_drat_string(input, clause_receiver);
+  }
+  else {
+    std::byte const* start = reinterpret_cast<std::byte const*>(input.data());
+    parse_drat_binary_buffer(start, start + input.size(), clause_receiver);
+  }
+}
+}
 
+TEST_P(DratParsingTests, ParseFromStringOrBuffer)
+{
   if (std::holds_alternative<parse_error>(get_expected())) {
-    EXPECT_THROW(parse_drat_string(get_input(),
-                                   get_format(),
-                                   [](bool is_added, std::vector<lit> const& /*unused*/) {}),
-                 std::exception);
+    EXPECT_THROW(
+        parse_drat_string_or_binary(
+            get_input(), get_format(), [](bool /*unused*/, std::vector<lit> const& /*unused*/) {}),
+        std::exception);
   }
   else {
     trivial_proof expected = std::get<trivial_proof>(get_expected());
     trivial_proof result;
-    parse_drat_string(
+
+    parse_drat_string_or_binary(
         get_input(), get_format(), [&result](bool is_added, std::vector<lit> const& clause) {
           result.push_back({is_added, clause});
         });
+
     EXPECT_THAT(result, Eq(expected));
   }
 }
 
-TEST_P(DratParsingTests, ParseFromTextFile)
+TEST_P(DratParsingTests, ParseFromFile)
 {
   temp_dir const tmp{"drat_parsing_tests"};
   fs::path const cnf_file = tmp.get_path() / "proof.drat";
@@ -92,7 +108,7 @@ TEST_P(DratParsingTests, ParseFromTextFile)
   if (std::holds_alternative<parse_error>(get_expected())) {
     EXPECT_THROW(parse_drat_file(cnf_file,
                                  get_format(),
-                                 [](bool is_added, std::vector<lit> const& /*unused*/) {}),
+                                 [](bool /*unused*/, std::vector<lit> const& /*unused*/) {}),
                  std::exception);
   }
   else {

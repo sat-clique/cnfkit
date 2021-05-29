@@ -5,6 +5,7 @@
 #include <zlib.h>
 
 #include <array>
+#include <cstddef>
 #include <filesystem>
 #include <string>
 #include <vector>
@@ -15,8 +16,8 @@ enum class drat_format { text, binary };
 
 namespace cnfkit::detail {
 
-template <typename It>
-auto parse_drat_binary_lit(It start, It stop) -> std::pair<lit, It>
+inline auto parse_drat_binary_lit(std::byte const* start, std::byte const* stop)
+    -> std::pair<lit, std::byte const*>
 {
   if (start == stop) {
     throw std::invalid_argument{"invalid binary drat literal"};
@@ -25,16 +26,16 @@ auto parse_drat_binary_lit(It start, It stop) -> std::pair<lit, It>
   uint32_t raw_lit = 0;
   uint32_t shift = 0;
   bool found_end = false;
-  It cursor = start;
+  std::byte const* cursor = start;
 
   do {
-    if (shift == 28 && (*cursor & 0x7F) > 0x0F) {
+    if (shift == 28 && (*cursor & std::byte{0x70}) != std::byte{0}) {
       throw std::invalid_argument{"literal out of range"};
     }
 
-    raw_lit |= ((*cursor & 0x7F) << shift);
+    raw_lit |= (std::to_integer<uint32_t>(*cursor & std::byte{0x7F}) << shift);
     shift += 7;
-    found_end = (*cursor & 0x80) == 0;
+    found_end = (*cursor & std::byte{0x80}) == std::byte{0};
     ++cursor;
   } while (!found_end && cursor != stop && shift <= 28);
 
@@ -50,27 +51,27 @@ auto parse_drat_binary_lit(It start, It stop) -> std::pair<lit, It>
 
   lit result{cnfkit_var, (raw_lit & 1) == 0};
 
-  return {result, cursor};
+  return std::make_pair(result, cursor);
 }
 
 class drat_binary_chunk_parser {
 public:
-  template <typename It, typename BinaryFn>
-  void parse(It start, It stop, BinaryFn&& clause_receiver)
+  template <typename BinaryFn>
+  void parse(std::byte const* start, std::byte const* stop, BinaryFn&& clause_receiver)
   {
-    It cursor = start;
+    std::byte const* cursor = start;
     while (cursor != stop) {
-      if (*cursor == 0x61) {
+      if (*cursor == std::byte{0x61}) {
         m_is_in_add_mode = true;
         m_is_in_clause = true;
         ++cursor;
       }
-      else if (*cursor == 0x64) {
+      else if (*cursor == std::byte{0x64}) {
         m_is_in_add_mode = false;
         m_is_in_clause = true;
         ++cursor;
       }
-      else if (*cursor == 0) {
+      else if (*cursor == std::byte{0}) {
         if (!m_is_in_clause) {
           throw std::invalid_argument{"clause not preceded by a or d"};
         }
@@ -105,7 +106,6 @@ private:
   bool m_is_in_clause = false;
 };
 
-// TODO: create utility class for gz file access, unify with cnf_gz_file
 class drat_binary_input_file {
 public:
   drat_binary_input_file(std::filesystem::path const& file)
@@ -134,9 +134,9 @@ public:
 
   auto is_eof() const -> bool { return gzeof(m_file); }
 
-  auto read_char() -> std::optional<char>
+  auto read_byte() -> std::optional<std::byte>
   {
-    char character = 0;
+    unsigned char character = 0;
     int chars_read = gzread(m_file, &character, 1);
 
     if (chars_read == 0 && is_eof()) {
@@ -149,10 +149,10 @@ public:
       throw std::runtime_error{message};
     }
 
-    return character;
+    return std::byte{character};
   }
 
-  auto read_chunk(size_t desired_size) -> std::vector<unsigned char> const&
+  auto read_chunk(size_t desired_size) -> std::vector<std::byte> const&
   {
     m_buffer.resize(desired_size);
     int bytes_read = ::gzread(m_file, m_buffer.data(), desired_size);
@@ -168,8 +168,8 @@ public:
     // stopped in the middle of a literal ~> read rest, too
     // TODO: only read at most 4 additional chars
     if (!m_buffer.empty()) {
-      while (!is_eof() && (m_buffer.back() & 0x80) != 0) {
-        m_buffer.push_back(*read_char());
+      while (!is_eof() && (m_buffer.back() & std::byte{0x80}) != std::byte{0}) {
+        m_buffer.push_back(*read_byte());
       }
     }
 
@@ -183,7 +183,7 @@ public:
   auto operator=(drat_binary_input_file&& rhs) -> drat_binary_input_file& = default;
 
 private:
-  std::vector<unsigned char> m_buffer;
+  std::vector<std::byte> m_buffer;
   gzFile m_file;
 };
 
@@ -207,7 +207,7 @@ auto parse_drat_binary_gz_file(drat_binary_input_file& file, BinaryFn&& clause_r
   drat_binary_chunk_parser parser;
   while (!file.is_eof()) {
     auto const& buffer = file.read_chunk(default_chunk_size);
-    parser.parse(buffer.begin(), buffer.end(), clause_receiver);
+    parser.parse(buffer.data(), buffer.data() + buffer.size(), clause_receiver);
   }
 
   parser.check_on_drat_finish();
@@ -242,17 +242,20 @@ void parse_drat_from_stdin_impl(drat_format format, BinaryFn&& clause_receiver)
 }
 
 template <typename BinaryFn>
-void parse_drat_string_impl(std::string const& drat, drat_format format, BinaryFn&& clause_receiver)
+void parse_drat_string_impl(std::string const& drat, BinaryFn&& clause_receiver)
 {
-  if (format == drat_format::binary) {
-    drat_binary_chunk_parser parser;
-    parser.parse(drat.begin(), drat.end(), clause_receiver);
-    parser.check_on_drat_finish();
-  }
-  else {
-    cnf_chunk_parser parser{cnf_chunk_parser_mode::drat};
-    parser.parse(drat, 0, clause_receiver);
-    parser.check_on_drat_finish();
-  }
+  cnf_chunk_parser parser{cnf_chunk_parser_mode::drat};
+  parser.parse(drat, 0, clause_receiver);
+  parser.check_on_drat_finish();
+}
+
+template <typename BinaryFn>
+void parse_drat_binary_buffer_impl(std::byte const* start,
+                                   std::byte const* stop,
+                                   BinaryFn&& clause_receiver)
+{
+  drat_binary_chunk_parser parser;
+  parser.parse(start, stop, clause_receiver);
+  parser.check_on_drat_finish();
 }
 }
