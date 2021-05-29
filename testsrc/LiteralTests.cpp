@@ -42,6 +42,38 @@ TEST(LiteralTests, LiteralSuccessors)
   EXPECT_THAT((-1_lit).prev(), 0_lit);
 }
 
+TEST(LiteralTests, VariableIncrement)
+{
+  var under_test = 2_var;
+  EXPECT_THAT(++under_test, Eq(3_var));
+  EXPECT_THAT(under_test++, Eq(3_var));
+  EXPECT_THAT(under_test, Eq(4_var));
+}
+
+TEST(LiteralTests, VariableDecrement)
+{
+  var under_test = 4_var;
+  EXPECT_THAT(--under_test, Eq(3_var));
+  EXPECT_THAT(under_test--, Eq(3_var));
+  EXPECT_THAT(under_test, Eq(2_var));
+}
+
+TEST(LiteralTests, LiteralIncrement)
+{
+  lit under_test = 2_lit;
+  EXPECT_THAT(++under_test, Eq(-3_lit));
+  EXPECT_THAT(under_test++, Eq(-3_lit));
+  EXPECT_THAT(under_test, Eq(3_lit));
+}
+
+TEST(LiteralTests, LiteralDecrement)
+{
+  lit under_test = 3_lit;
+  EXPECT_THAT(--under_test, Eq(-3_lit));
+  EXPECT_THAT(under_test--, Eq(-3_lit));
+  EXPECT_THAT(under_test, Eq(2_lit));
+}
+
 TEST(LiteralTests, DimacsToLit)
 {
   EXPECT_THROW(dimacs_to_lit(0), std::invalid_argument);

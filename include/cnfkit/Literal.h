@@ -16,10 +16,13 @@ public:
 
   constexpr auto get_raw_value() const noexcept -> uint32_t;
 
-  auto operator++(int) noexcept -> var&;
-  auto operator++() noexcept -> var;
-  auto operator--(int) noexcept -> var&;
-  auto operator--() noexcept -> var;
+  auto operator++() noexcept -> var&;
+  auto operator++(int) noexcept -> var;
+  auto operator--() noexcept -> var&;
+  auto operator--(int) noexcept -> var;
+
+  constexpr auto next() const noexcept -> var;
+  constexpr auto prev() const noexcept -> var;
 
 private:
   uint32_t m_raw_value;
@@ -36,13 +39,15 @@ public:
   constexpr auto operator-() const noexcept -> lit;
   constexpr auto get_raw_value() const noexcept -> uint32_t;
 
-  auto operator++(int) noexcept -> lit&;
-  auto operator++() noexcept -> lit;
-  auto operator--(int) noexcept -> lit&;
-  auto operator--() noexcept -> lit;
+  auto operator++() noexcept -> lit&;
+  auto operator++(int) noexcept -> lit;
+  auto operator--() noexcept -> lit&;
+  auto operator--(int) noexcept -> lit;
 
   constexpr auto next_with_same_sign() const noexcept -> lit;
   constexpr auto prev_with_same_sign() const noexcept -> lit;
+  constexpr auto next() const noexcept -> lit;
+  constexpr auto prev() const noexcept -> lit;
 
 private:
   constexpr lit(uint32_t raw_value) : m_raw_value{raw_value} {}
@@ -109,30 +114,40 @@ constexpr auto var::get_raw_value() const noexcept -> uint32_t
   return m_raw_value;
 }
 
-inline auto var::operator++(int) noexcept -> var&
+inline auto var::operator++() noexcept -> var&
 {
   ++m_raw_value;
   return *this;
 }
 
-inline auto var::operator++() noexcept -> var
+inline auto var::operator++(int) noexcept -> var
 {
   var copy = *this;
   ++m_raw_value;
   return copy;
 }
 
-inline auto var::operator--(int) noexcept -> var&
+inline auto var::operator--() noexcept -> var&
 {
   --m_raw_value;
   return *this;
 }
 
-inline auto var::operator--() noexcept -> var
+inline auto var::operator--(int) noexcept -> var
 {
   var copy = *this;
   --m_raw_value;
-  return *this;
+  return copy;
+}
+
+constexpr auto var::next() const noexcept -> var
+{
+  return var{m_raw_value + 1};
+}
+
+constexpr auto var::prev() const noexcept -> var
+{
+  return var{m_raw_value - 1};
 }
 
 constexpr lit::lit(var variable, bool is_positive) noexcept
@@ -162,30 +177,30 @@ constexpr auto lit::get_raw_value() const noexcept -> uint32_t
   return m_raw_value;
 }
 
-inline auto lit::operator++(int) noexcept -> lit&
+inline auto lit::operator++() noexcept -> lit&
 {
   ++m_raw_value;
   return *this;
 }
 
-inline auto lit::operator++() noexcept -> lit
+inline auto lit::operator++(int) noexcept -> lit
 {
   lit copy = *this;
   ++m_raw_value;
-  return *this;
+  return copy;
 }
 
-inline auto lit::operator--(int) noexcept -> lit&
+inline auto lit::operator--() noexcept -> lit&
 {
   --m_raw_value;
   return *this;
 }
 
-inline auto lit::operator--() noexcept -> lit
+inline auto lit::operator--(int) noexcept -> lit
 {
   lit copy = *this;
   --m_raw_value;
-  return *this;
+  return copy;
 }
 
 constexpr auto lit::next_with_same_sign() const noexcept -> lit
@@ -196,6 +211,16 @@ constexpr auto lit::next_with_same_sign() const noexcept -> lit
 constexpr auto lit::prev_with_same_sign() const noexcept -> lit
 {
   return lit{m_raw_value - 2};
+}
+
+constexpr auto lit::next() const noexcept -> lit
+{
+  return lit{m_raw_value + 1};
+}
+
+constexpr auto lit::prev() const noexcept -> lit
+{
+  return lit{m_raw_value - 1};
 }
 
 inline auto lit_to_dimacs(lit literal) -> int32_t
