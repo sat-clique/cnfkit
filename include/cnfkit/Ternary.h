@@ -11,14 +11,14 @@ public:
   constexpr tbool() noexcept : m_value(0) {}
   constexpr tbool(uint8_t value) noexcept : m_value(value) {}
 
-  constexpr auto operator&(tbool const& rhs) const noexcept -> tbool;
-  constexpr auto operator|(tbool const& rhs) const noexcept -> tbool;
+  constexpr auto operator&(tbool rhs) const noexcept -> tbool;
+  constexpr auto operator|(tbool rhs) const noexcept -> tbool;
   constexpr auto operator!() const noexcept -> tbool;
 
   constexpr operator bool() const noexcept;
 
-  constexpr auto operator==(tbool const& rhs) const noexcept -> bool;
-  constexpr auto operator!=(tbool const& rhs) const noexcept -> bool;
+  constexpr auto operator==(tbool rhs) const noexcept -> bool;
+  constexpr auto operator!=(tbool rhs) const noexcept -> bool;
 
 private:
   uint8_t m_value;
@@ -33,14 +33,14 @@ constexpr auto to_tbool(bool it) noexcept -> tbool;
 
 // *** Implementation ***
 
-constexpr auto tbool::operator&(tbool const& rhs) const noexcept -> tbool
+constexpr auto tbool::operator&(tbool rhs) const noexcept -> tbool
 {
   return (*this == t_true && rhs == t_true)
              ? t_true
              : ((*this == t_false || rhs == t_false) ? t_false : t_indet);
 }
 
-constexpr auto tbool::operator|(tbool const& rhs) const noexcept -> tbool
+constexpr auto tbool::operator|(tbool rhs) const noexcept -> tbool
 {
   return *this == t_false && rhs == t_false ? t_false
                                             : (*this == t_true || rhs == t_true ? t_true : t_indet);
@@ -56,12 +56,12 @@ constexpr tbool::operator bool() const noexcept
   return *this == t_true;
 }
 
-constexpr auto tbool::operator==(tbool const& rhs) const noexcept -> bool
+constexpr auto tbool::operator==(tbool rhs) const noexcept -> bool
 {
-  return this == &rhs || m_value == rhs.m_value;
+  return m_value == rhs.m_value;
 }
 
-constexpr auto tbool::operator!=(tbool const& rhs) const noexcept -> bool
+constexpr auto tbool::operator!=(tbool rhs) const noexcept -> bool
 {
   return !(*this == rhs);
 }

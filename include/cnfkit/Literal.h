@@ -54,22 +54,22 @@ constexpr auto operator"" _lit(unsigned long long n) noexcept -> lit;
 constexpr auto operator"" _var(unsigned long long n) noexcept -> var;
 }
 
-constexpr auto lit_to_dimacs(lit const& lit) noexcept -> int32_t;
+constexpr auto lit_to_dimacs(lit lit) noexcept -> int32_t;
 inline auto dimacs_to_lit(int32_t dimacs_lit) noexcept -> lit;
 
-constexpr auto operator==(var const& lhs, var const& rhs) noexcept -> bool;
-constexpr auto operator!=(var const& lhs, var const& rhs) noexcept -> bool;
-constexpr auto operator<(var const& lhs, var const& rhs) noexcept -> bool;
-constexpr auto operator<=(var const& lhs, var const& rhs) noexcept -> bool;
-constexpr auto operator>(var const& lhs, var const& rhs) noexcept -> bool;
-constexpr auto operator>=(var const& lhs, var const& rhs) noexcept -> bool;
+constexpr auto operator==(var lhs, var rhs) noexcept -> bool;
+constexpr auto operator!=(var lhs, var rhs) noexcept -> bool;
+constexpr auto operator<(var lhs, var rhs) noexcept -> bool;
+constexpr auto operator<=(var lhs, var rhs) noexcept -> bool;
+constexpr auto operator>(var lhs, var rhs) noexcept -> bool;
+constexpr auto operator>=(var lhs, var rhs) noexcept -> bool;
 
-constexpr auto operator==(lit const& lhs, lit const& rhs) noexcept -> bool;
-constexpr auto operator!=(lit const& lhs, lit const& rhs) noexcept -> bool;
-constexpr auto operator<(lit const& lhs, lit const& rhs) noexcept -> bool;
-constexpr auto operator<=(lit const& lhs, lit const& rhs) noexcept -> bool;
-constexpr auto operator>(lit const& lhs, lit const& rhs) noexcept -> bool;
-constexpr auto operator>=(lit const& lhs, lit const& rhs) noexcept -> bool;
+constexpr auto operator==(lit lhs, lit rhs) noexcept -> bool;
+constexpr auto operator!=(lit lhs, lit rhs) noexcept -> bool;
+constexpr auto operator<(lit lhs, lit rhs) noexcept -> bool;
+constexpr auto operator<=(lit lhs, lit rhs) noexcept -> bool;
+constexpr auto operator>(lit lhs, lit rhs) noexcept -> bool;
+constexpr auto operator>=(lit lhs, lit rhs) noexcept -> bool;
 
 
 // *** Implementation ***
@@ -184,7 +184,7 @@ constexpr auto lit::prev_with_same_sign() const noexcept -> lit
   return lit{m_raw_value - 2};
 }
 
-constexpr auto lit_to_dimacs(lit const& lit) noexcept -> int32_t
+constexpr auto lit_to_dimacs(lit lit) noexcept -> int32_t
 {
   return static_cast<int32_t>(lit.get_var().get_raw_value()) * (lit.is_positive() ? 1 : -1);
 }
@@ -204,62 +204,62 @@ inline auto dimacs_to_lit(int32_t dimacs_lit) noexcept -> lit
 }
 
 
-constexpr auto operator==(var const& lhs, var const& rhs) noexcept -> bool
-{
-  return &lhs == &rhs || lhs.get_raw_value() == rhs.get_raw_value();
-}
-
-constexpr auto operator!=(var const& lhs, var const& rhs) noexcept -> bool
-{
-  return !(lhs == rhs);
-}
-
-constexpr auto operator<(var const& lhs, var const& rhs) noexcept -> bool
-{
-  return lhs.get_raw_value() < rhs.get_raw_value();
-}
-
-constexpr auto operator<=(var const& lhs, var const& rhs) noexcept -> bool
-{
-  return lhs.get_raw_value() <= rhs.get_raw_value();
-}
-
-constexpr auto operator>(var const& lhs, var const& rhs) noexcept -> bool
-{
-  return lhs.get_raw_value() > rhs.get_raw_value();
-}
-
-constexpr auto operator>=(var const& lhs, var const& rhs) noexcept -> bool
-{
-  return lhs.get_raw_value() >= rhs.get_raw_value();
-}
-
-constexpr auto operator==(lit const& lhs, lit const& rhs) noexcept -> bool
+constexpr auto operator==(var lhs, var rhs) noexcept -> bool
 {
   return lhs.get_raw_value() == rhs.get_raw_value();
 }
 
-constexpr auto operator!=(lit const& lhs, lit const& rhs) noexcept -> bool
+constexpr auto operator!=(var lhs, var rhs) noexcept -> bool
 {
-  return lhs.get_raw_value() != rhs.get_raw_value();
+  return !(lhs == rhs);
 }
 
-constexpr auto operator<(lit const& lhs, lit const& rhs) noexcept -> bool
+constexpr auto operator<(var lhs, var rhs) noexcept -> bool
 {
   return lhs.get_raw_value() < rhs.get_raw_value();
 }
 
-constexpr auto operator<=(lit const& lhs, lit const& rhs) noexcept -> bool
+constexpr auto operator<=(var lhs, var rhs) noexcept -> bool
 {
   return lhs.get_raw_value() <= rhs.get_raw_value();
 }
 
-constexpr auto operator>(lit const& lhs, lit const& rhs) noexcept -> bool
+constexpr auto operator>(var lhs, var rhs) noexcept -> bool
 {
   return lhs.get_raw_value() > rhs.get_raw_value();
 }
 
-constexpr auto operator>=(lit const& lhs, lit const& rhs) noexcept -> bool
+constexpr auto operator>=(var lhs, var rhs) noexcept -> bool
+{
+  return lhs.get_raw_value() >= rhs.get_raw_value();
+}
+
+constexpr auto operator==(lit lhs, lit rhs) noexcept -> bool
+{
+  return lhs.get_raw_value() == rhs.get_raw_value();
+}
+
+constexpr auto operator!=(lit lhs, lit rhs) noexcept -> bool
+{
+  return lhs.get_raw_value() != rhs.get_raw_value();
+}
+
+constexpr auto operator<(lit lhs, lit rhs) noexcept -> bool
+{
+  return lhs.get_raw_value() < rhs.get_raw_value();
+}
+
+constexpr auto operator<=(lit lhs, lit rhs) noexcept -> bool
+{
+  return lhs.get_raw_value() <= rhs.get_raw_value();
+}
+
+constexpr auto operator>(lit lhs, lit rhs) noexcept -> bool
+{
+  return lhs.get_raw_value() > rhs.get_raw_value();
+}
+
+constexpr auto operator>=(lit lhs, lit rhs) noexcept -> bool
 {
   return lhs.get_raw_value() >= rhs.get_raw_value();
 }
