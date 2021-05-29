@@ -8,6 +8,16 @@
 using ::testing::Eq;
 
 namespace cnfkit {
+
+// Check regularity of tbool:
+static_assert(std::is_nothrow_default_constructible_v<tbool>);
+static_assert(std::is_nothrow_copy_assignable_v<tbool>);
+static_assert(std::is_nothrow_copy_constructible_v<tbool>);
+static_assert(std::is_nothrow_destructible_v<tbool>);
+static_assert(std::is_nothrow_move_assignable_v<tbool>);
+static_assert(std::is_nothrow_move_constructible_v<tbool>);
+static_assert(std::is_nothrow_swappable_v<tbool>);
+
 TEST(TernaryTests, AndSatisfiesStrongIndeterminacy)
 {
   EXPECT_THAT(t_true & t_true, Eq(t_true));
