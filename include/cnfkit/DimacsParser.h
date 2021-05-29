@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cnfkit/detail/CheckCxxVersion.h>
+
 #include <cnfkit/Literal.h>
 #include <cnfkit/detail/CnfLikeParser.h>
 #include <cnfkit/detail/DimacsParser.h>

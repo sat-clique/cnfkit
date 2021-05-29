@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cnfkit/detail/CheckCxxVersion.h>
+
 #include <cstdint>
 
 namespace cnfkit {
