@@ -4,6 +4,9 @@
 
 #include <cmath>
 #include <cstdint>
+#include <limits>
+
+// TODO: add noexcept
 
 namespace cnfkit {
 
@@ -52,6 +55,9 @@ namespace cnfkit_literals {
 constexpr lit operator"" _lit(unsigned long long n);
 constexpr var operator"" _var(unsigned long long n);
 }
+
+constexpr auto lit_to_dimacs(lit const& lit) noexcept -> int32_t;
+inline auto dimacs_to_lit(int32_t dimacs_lit) noexcept -> lit;
 
 constexpr auto operator==(var const& lhs, var const& rhs) -> bool;
 constexpr auto operator!=(var const& lhs, var const& rhs) -> bool;
@@ -179,6 +185,26 @@ constexpr auto lit::prev_with_same_sign() const -> lit
 {
   return lit{m_raw_value - 2};
 }
+
+constexpr auto lit_to_dimacs(lit const& lit) noexcept -> int32_t
+{
+  return static_cast<int32_t>(lit.get_var().get_raw_value()) * (lit.is_positive() ? 1 : -1);
+}
+
+inline auto dimacs_to_lit(int32_t dimacs_lit) noexcept -> lit
+{
+  if (dimacs_lit == std::numeric_limits<int32_t>::min()) {
+    return lit{invalid_var, false};
+  }
+
+  uint32_t abs_dimacs_lit = std::abs(dimacs_lit);
+  if (abs_dimacs_lit > max_raw_var) {
+    return lit{invalid_var, false};
+  }
+
+  return lit{var{abs_dimacs_lit}, dimacs_lit > 0};
+}
+
 
 constexpr auto operator==(var const& lhs, var const& rhs) -> bool
 {

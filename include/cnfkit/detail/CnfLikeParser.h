@@ -163,20 +163,6 @@ auto skip_dimacs_comments(It start, It stop) -> std::pair<It, bool>
   return std::make_pair(iter, false);
 }
 
-inline auto dimacs_to_lit(int dimacs_lit) -> lit
-{
-  if (dimacs_lit == std::numeric_limits<int>::min()) {
-    throw std::invalid_argument{"variable out of range"};
-  }
-
-  int const variable = std::abs(dimacs_lit);
-  if (variable > max_raw_var) {
-    throw std::invalid_argument{"variable out of range"};
-  }
-
-  return lit{var{static_cast<uint32_t>(variable)}, dimacs_lit > 0};
-}
-
 struct dimacs_problem_header {
   size_t num_vars = 0;
   size_t num_clauses = 0;
