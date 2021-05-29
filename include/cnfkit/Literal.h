@@ -11,6 +11,8 @@ namespace cnfkit {
 class var {
 public:
   constexpr var(uint32_t raw_value) noexcept : m_raw_value{raw_value} {}
+  constexpr var() noexcept : m_raw_value{0} {}
+
   constexpr auto get_raw_value() const noexcept -> uint32_t;
 
   auto operator++(int) noexcept -> var&;
@@ -28,6 +30,7 @@ constexpr var invalid_var(max_raw_var + 1);
 class lit {
 public:
   constexpr lit(var variable, bool is_positive) noexcept;
+  constexpr lit() noexcept;
 
   constexpr auto get_var() const noexcept -> var;
   constexpr auto is_positive() const noexcept -> bool;
@@ -121,6 +124,8 @@ constexpr lit::lit(var variable, bool is_positive) noexcept
   : m_raw_value{(variable.get_raw_value() << 1) + (is_positive ? 1 : 0)}
 {
 }
+
+constexpr lit::lit() noexcept : m_raw_value{0} {}
 
 constexpr auto lit::get_var() const noexcept -> var
 {
