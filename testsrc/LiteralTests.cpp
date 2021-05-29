@@ -40,6 +40,11 @@ TEST(LiteralTests, LiteralSuccessors)
   EXPECT_THAT((-2_lit).next(), 2_lit);
   EXPECT_THAT((1_lit).prev(), -1_lit);
   EXPECT_THAT((-1_lit).prev(), 0_lit);
+
+  EXPECT_THAT((2_lit).next_with_same_sign(), 3_lit);
+  EXPECT_THAT((-2_lit).next_with_same_sign(), -3_lit);
+  EXPECT_THAT((2_lit).prev_with_same_sign(), 1_lit);
+  EXPECT_THAT((-2_lit).prev_with_same_sign(), -1_lit);
 }
 
 TEST(LiteralTests, VariableIncrement)
