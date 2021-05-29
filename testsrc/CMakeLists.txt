@@ -8,6 +8,9 @@ add_executable(cnfkit-tests
   TernaryTests.cpp
 )
 
-target_include_directories(cnfkit-tests PRIVATE "${PROJECT_SOURCE_DIR}/include")
-target_link_libraries(cnfkit-tests gtest gmock gmock_main ZLIB::ZLIB)
+target_link_libraries(cnfkit-tests PRIVATE cnfkit::cnfkit gtest gmock gmock_main)
+
+if (CNFKIT_GNULIKE_COMPILER)
+  target_compile_options(cnfkit-tests PRIVATE -Wall -Wextra -pedantic)
+endif()
 
