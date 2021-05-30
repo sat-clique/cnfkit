@@ -10,7 +10,7 @@ if (CNFKIT_ENABLE_TESTS)
     ternary_tests.cpp
   )
 
-  target_link_libraries(cnfkit-tests PRIVATE cnfkit::cnfkit gtest gmock gmock_main)
+  target_link_libraries(cnfkit-tests PRIVATE cnfkit gtest gmock gmock_main)
 
   if (CNFKIT_GNULIKE_COMPILER)
     target_compile_options(cnfkit-tests PRIVATE -Wall -Wextra -pedantic)
