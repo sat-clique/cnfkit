@@ -13,6 +13,7 @@ if (CMAKE_CURRENT_LIST_DIR STREQUAL CMAKE_SOURCE_DIR)
   # Building CNFKit in standalone mode, ie. it is not included via add_subdirectory()
   # in another project
 
+  option(CNFKIT_ENABLE_TESTS "Enable testing" OFF)
   option(CNFKIT_TEST_ENABLE_SANITIZERS "Enable address sanitizer for tests" OFF)
   option(CNFKIT_BUILD_DOCS "Build Doxygen documentation" OFF)
 
@@ -34,7 +35,7 @@ if (CMAKE_CURRENT_LIST_DIR STREQUAL CMAKE_SOURCE_DIR)
   endif()
 
   add_subdirectory(doc)
-  add_subdirectory(testdeps/googletest)
+  add_subdirectory(testdeps)
   add_subdirectory(testsrc)
 endif()
 
