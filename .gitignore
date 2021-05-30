@@ -2,3 +2,4 @@
 compile_commands.json
 .ycm_extra_conf_cxx.py
 .DS_Store
+*.swo
