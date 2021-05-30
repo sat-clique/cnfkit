@@ -1,5 +1,7 @@
 #include <cnfkit/drat_parser.h>
 
+#include <cnfkit/io/io_buf.h>
+
 #include "test_utils.h"
 
 #include <gmock/gmock.h>
@@ -17,6 +19,8 @@ namespace fs = std::filesystem;
 using ::testing::Eq;
 
 namespace cnfkit {
+
+enum class drat_format { text, binary };
 
 struct parse_error {
 };
@@ -64,17 +68,17 @@ void parse_drat_string_or_binary(std::string const& input,
                                  drat_format format,
                                  BinaryFn&& clause_receiver)
 {
+  buf_source source{input};
   if (format == drat_format::text) {
-    parse_drat_string(input, clause_receiver);
+    parse_drat_text(source, clause_receiver);
   }
   else {
-    std::byte const* start = reinterpret_cast<std::byte const*>(input.data());
-    parse_drat_binary_buffer(start, start + input.size(), clause_receiver);
+    parse_drat_binary(source, clause_receiver);
   }
 }
 }
 
-TEST_P(DratParsingTests, ParseFromStringOrBuffer)
+TEST_P(DratParsingTests, ParseFromBufSource)
 {
   if (std::holds_alternative<parse_error>(get_expected())) {
     EXPECT_THROW(
@@ -91,33 +95,6 @@ TEST_P(DratParsingTests, ParseFromStringOrBuffer)
           result.push_back({is_added, clause});
         });
 
-    EXPECT_THAT(result, Eq(expected));
-  }
-}
-
-TEST_P(DratParsingTests, ParseFromFile)
-{
-  temp_dir const tmp{"drat_parsing_tests"};
-  fs::path const cnf_file = tmp.get_path() / "proof.drat";
-
-  {
-    std::ofstream file{cnf_file};
-    file << get_input();
-  }
-
-  if (std::holds_alternative<parse_error>(get_expected())) {
-    EXPECT_THROW(parse_drat_file(cnf_file,
-                                 get_format(),
-                                 [](bool /*unused*/, std::vector<lit> const& /*unused*/) {}),
-                 std::exception);
-  }
-  else {
-    trivial_proof expected = std::get<trivial_proof>(get_expected());
-    trivial_proof result;
-    parse_drat_file(
-        cnf_file, get_format(), [&result](bool is_added, std::vector<lit> const& clause) {
-          result.push_back({is_added, clause});
-        });
     EXPECT_THAT(result, Eq(expected));
   }
 }

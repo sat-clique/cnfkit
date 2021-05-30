@@ -4,7 +4,6 @@
 #include <cnfkit/literal.h>
 
 #include <charconv>
-#include <filesystem>
 #include <optional>
 #include <regex>
 #include <stdexcept>

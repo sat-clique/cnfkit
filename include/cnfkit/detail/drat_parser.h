@@ -1,14 +1,10 @@
 #pragma once
 
-#include <cnfkit/drat.h>
-
 #include <cnfkit/detail/cnflike_parser.h>
-#include <cnfkit/io/io_buf.h>
-#include <cnfkit/io/io_zlib.h>
+#include <cnfkit/io.h>
 
 #include <array>
 #include <cstddef>
-#include <filesystem>
 #include <string>
 #include <vector>
 
@@ -132,73 +128,4 @@ private:
   std::vector<std::byte> m_buffer;
   source& m_source;
 };
-
-template <typename BinaryFn>
-auto parse_drat_text_source(source& source, BinaryFn&& clause_receiver)
-{
-  cnf_chunk_parser parser{cnf_chunk_parser_mode::drat};
-  cnf_source_reader reader{source};
-  std::string buffer;
-  while (!reader.is_eof()) {
-    reader.read_chunk(default_chunk_size, buffer);
-    parser.parse(buffer, 0, clause_receiver);
-  }
-
-  parser.check_on_drat_finish();
-}
-
-template <typename BinaryFn>
-auto parse_drat_binary_source(source& source, BinaryFn&& clause_receiver)
-{
-  drat_binary_chunk_parser parser;
-  drat_source_reader reader{source};
-  while (!reader.is_eof()) {
-    auto const& buffer = reader.read_chunk(default_chunk_size);
-    parser.parse(buffer.data(), buffer.data() + buffer.size(), clause_receiver);
-  }
-
-  parser.check_on_drat_finish();
-}
-
-template <typename BinaryFn>
-void parse_drat_file_impl(std::filesystem::path const& input_file,
-                          drat_format format,
-                          BinaryFn&& clause_receiver)
-{
-  zlib_source file{input_file};
-  if (format == drat_format::binary) {
-    parse_drat_binary_source(file, clause_receiver);
-  }
-  else {
-    parse_drat_text_source(file, clause_receiver);
-  }
-}
-
-template <typename BinaryFn>
-void parse_drat_from_stdin_impl(drat_format format, BinaryFn&& clause_receiver)
-{
-  zlib_source stdin_file;
-  if (format == drat_format::binary) {
-    parse_drat_binary_source(stdin_file, clause_receiver);
-  }
-  else {
-    parse_drat_text_source(stdin_file, clause_receiver);
-  }
-}
-
-template <typename BinaryFn>
-void parse_drat_string_impl(std::string const& drat, BinaryFn&& clause_receiver)
-{
-  buf_source source{drat};
-  parse_drat_text_source(source, clause_receiver);
-}
-
-template <typename BinaryFn>
-void parse_drat_binary_buffer_impl(std::byte const* start,
-                                   std::byte const* stop,
-                                   BinaryFn&& clause_receiver)
-{
-  buf_source source{start, stop};
-  parse_drat_binary_source(source, clause_receiver);
-}
 }

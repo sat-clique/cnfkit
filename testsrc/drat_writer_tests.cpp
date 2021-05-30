@@ -2,6 +2,7 @@
 
 #include <cnfkit/drat_parser.h>
 #include <cnfkit/io.h>
+#include <cnfkit/io/io_buf.h>
 #include <cnfkit/literal.h>
 
 #include <gmock/gmock.h>
@@ -79,14 +80,15 @@ struct test_drat_proof_collector {
 TEST_P(DratWriterTest, WriteAsString)
 {
   test_sink sink;
-  drat_writer under_test{sink, drat_format::text};
+  drat_text_writer under_test{sink};
   send_test_input_to_writer(get_input(), under_test);
 
   under_test.flush();
 
   std::string const result = sink.as_string();
+  buf_source source{result};
   test_drat_proof_collector collector;
-  parse_drat_string(result, collector);
+  parse_drat_text(source, collector);
 
   EXPECT_THAT(collector.result, Eq(get_input()));
 }
@@ -94,14 +96,15 @@ TEST_P(DratWriterTest, WriteAsString)
 TEST_P(DratWriterTest, WriteAsBinary)
 {
   test_sink sink;
-  drat_writer under_test{sink, drat_format::binary};
+  drat_binary_writer under_test{sink};
   send_test_input_to_writer(get_input(), under_test);
 
   under_test.flush();
 
   auto const& result = sink.bytes();
+  buf_source source{result.data(), result.data() + result.size()};
   test_drat_proof_collector collector;
-  parse_drat_binary_buffer(result.data(), result.data() + result.size(), collector);
+  parse_drat_binary(source, collector);
 
   EXPECT_THAT(collector.result, Eq(get_input()));
 }

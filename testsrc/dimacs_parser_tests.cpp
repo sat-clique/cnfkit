@@ -1,5 +1,7 @@
 #include <cnfkit/dimacs_parser.h>
 
+#include <cnfkit/io/io_buf.h>
+
 #include "test_utils.h"
 
 #include <gmock/gmock.h>
@@ -39,42 +41,18 @@ public:
   }
 };
 
-TEST_P(DimacsParsingTests, ParseFromString)
+TEST_P(DimacsParsingTests, ParseFromBufSource)
 {
-  DimacsParsingTestSpec spec = GetParam();
+  std::string const& input = get_input();
+  buf_source source{input};
 
   if (std::holds_alternative<parse_error>(get_expected())) {
-    EXPECT_THROW(parse_cnf_string(get_input(), [](std::vector<lit> const& /*unused*/) {}),
-                 std::exception);
+    EXPECT_THROW(parse_cnf(source, [](std::vector<lit> const& /*unused*/) {}), std::exception);
   }
   else {
     trivial_formula expected = std::get<trivial_formula>(get_expected());
     trivial_formula result;
-    parse_cnf_string(get_input(),
-                     [&result](std::vector<lit> const& clause) { result.push_back(clause); });
-    EXPECT_THAT(result, Eq(expected));
-  }
-}
-
-TEST_P(DimacsParsingTests, ParseFromFile)
-{
-  temp_dir const tmp{"dimacs_parsing_tests"};
-  fs::path const cnf_file = tmp.get_path() / "problem.cnf";
-
-  {
-    std::ofstream file{cnf_file};
-    file << get_input();
-  }
-
-  if (std::holds_alternative<parse_error>(get_expected())) {
-    EXPECT_THROW(parse_cnf_file(cnf_file, [](std::vector<lit> const& /*unused*/) {}),
-                 std::exception);
-  }
-  else {
-    trivial_formula expected = std::get<trivial_formula>(get_expected());
-    trivial_formula result;
-    parse_cnf_file(cnf_file,
-                   [&result](std::vector<lit> const& clause) { result.push_back(clause); });
+    parse_cnf(source, [&result](std::vector<lit> const& clause) { result.push_back(clause); });
     EXPECT_THAT(result, Eq(expected));
   }
 }
