@@ -133,13 +133,13 @@ private:
 };
 
 template <typename BinaryFn>
-auto parse_drat_text_gz_file(cnf_gz_file& file, BinaryFn&& clause_receiver)
+auto parse_drat_text_source(source& source, BinaryFn&& clause_receiver)
 {
   cnf_chunk_parser parser{cnf_chunk_parser_mode::drat};
-
+  cnf_source_reader reader{source};
   std::string buffer;
-  while (!file.is_eof()) {
-    file.read_chunk(default_chunk_size, buffer);
+  while (!reader.is_eof()) {
+    reader.read_chunk(default_chunk_size, buffer);
     parser.parse(buffer, 0, clause_receiver);
   }
 
@@ -164,26 +164,24 @@ void parse_drat_file_impl(std::filesystem::path const& input_file,
                           drat_format format,
                           BinaryFn&& clause_receiver)
 {
+  zlib_source file{input_file};
   if (format == drat_format::binary) {
-    zlib_source file{input_file};
     parse_drat_binary_source(file, clause_receiver);
   }
   else {
-    cnf_gz_file file{input_file};
-    parse_drat_text_gz_file(file, clause_receiver);
+    parse_drat_text_source(file, clause_receiver);
   }
 }
 
 template <typename BinaryFn>
 void parse_drat_from_stdin_impl(drat_format format, BinaryFn&& clause_receiver)
 {
+  zlib_source stdin_file;
   if (format == drat_format::binary) {
-    zlib_source stdin_file;
     parse_drat_binary_source(stdin_file, clause_receiver);
   }
   else {
-    cnf_gz_file stdin_file;
-    parse_drat_text_gz_file(stdin_file, clause_receiver);
+    parse_drat_text_source(stdin_file, clause_receiver);
   }
 }
 

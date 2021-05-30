@@ -21,11 +21,9 @@ inline auto is_irrelevant_line(std::string const& line) -> bool
          std::regex_match(line, std::regex{"\\s*c.*"});
 }
 
-class cnf_gz_file {
+class cnf_source_reader {
 public:
-  explicit cnf_gz_file(std::filesystem::path const& file) : m_source{file} {}
-
-  cnf_gz_file() : m_source{} {}
+  explicit cnf_source_reader(source& source) : m_source{source} {}
 
   auto read_char() -> std::optional<char>
   {
@@ -89,13 +87,8 @@ public:
 
   auto is_eof() -> bool { return m_source.is_eof(); };
 
-  cnf_gz_file(cnf_gz_file const& rhs) = delete;
-  auto operator=(cnf_gz_file const& rhs) -> cnf_gz_file& = delete;
-  cnf_gz_file(cnf_gz_file&& rhs) = default;
-  auto operator=(cnf_gz_file&& rhs) -> cnf_gz_file& = default;
-
 private:
-  zlib_source m_source;
+  source& m_source;
 };
 
 template <typename It>

@@ -51,9 +51,11 @@ inline auto parse_cnf_header_line(std::string_view buffer) -> dimacs_problem_hea
 }
 
 template <typename UnaryFn>
-auto parse_cnf_gz_file(cnf_gz_file& file, UnaryFn&& clause_receiver)
+auto parse_cnf_source(source& source, UnaryFn&& clause_receiver)
 {
-  std::string const header_line = file.read_header_line();
+  cnf_source_reader reader{source};
+
+  std::string const header_line = reader.read_header_line();
   dimacs_problem_header header = parse_cnf_header_line(header_line);
 
   cnf_chunk_parser parser{cnf_chunk_parser_mode::dimacs};
@@ -64,8 +66,8 @@ auto parse_cnf_gz_file(cnf_gz_file& file, UnaryFn&& clause_receiver)
                });
 
   std::string buffer;
-  while (!file.is_eof()) {
-    file.read_chunk(default_chunk_size, buffer);
+  while (!reader.is_eof()) {
+    reader.read_chunk(default_chunk_size, buffer);
     parser.parse(buffer, 0, [&clause_receiver](bool /*ignored*/, std::vector<lit> const& clause) {
       clause_receiver(clause);
     });

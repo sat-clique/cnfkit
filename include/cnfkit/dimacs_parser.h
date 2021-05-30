@@ -84,16 +84,16 @@ template <typename UnaryFn>
 void parse_cnf_file(std::filesystem::path const& input_file, UnaryFn&& clause_receiver)
 {
   using namespace detail;
-  cnf_gz_file file{input_file};
-  parse_cnf_gz_file(file, clause_receiver);
+  zlib_source source{input_file};
+  parse_cnf_source(source, clause_receiver);
 }
 
 template <typename UnaryFn>
 void parse_cnf_from_stdin(UnaryFn&& clause_receiver)
 {
   using namespace detail;
-  cnf_gz_file stdin_file;
-  parse_cnf_gz_file(stdin_file, clause_receiver);
+  zlib_source source;
+  parse_cnf_gz_file(source, clause_receiver);
 }
 
 template <typename UnaryFn>
