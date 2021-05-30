@@ -2,6 +2,7 @@
 
 #include <cnfkit/DratParser.h>
 #include <cnfkit/Literal.h>
+#include <cnfkit/Sink.h>
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
@@ -16,7 +17,7 @@ using ::testing::Eq;
 namespace cnfkit {
 
 namespace {
-class test_drat_sink : public drat_sink {
+class test_sink : public sink {
 public:
   void write_bytes(std::byte const* start, std::byte const* stop) override
   {
@@ -77,7 +78,7 @@ struct test_drat_proof_collector {
 
 TEST_P(DratWriterTest, WriteAsString)
 {
-  test_drat_sink sink;
+  test_sink sink;
   drat_writer under_test{sink, drat_format::text};
   send_test_input_to_writer(get_input(), under_test);
 
@@ -92,7 +93,7 @@ TEST_P(DratWriterTest, WriteAsString)
 
 TEST_P(DratWriterTest, WriteAsBinary)
 {
-  test_drat_sink sink;
+  test_sink sink;
   drat_writer under_test{sink, drat_format::binary};
   send_test_input_to_writer(get_input(), under_test);
 

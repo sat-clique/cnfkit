@@ -4,6 +4,7 @@
 
 #include <cnfkit/Drat.h>
 #include <cnfkit/Literal.h>
+#include <cnfkit/Sink.h>
 
 #include <array>
 #include <charconv>
@@ -11,20 +12,13 @@
 #include <vector>
 
 
-// TODO: extract drat_sink to separate header & implement file + string sink
+// TODO: extract sink to separate header & implement file + string sink
 
 namespace cnfkit {
 
-class drat_sink {
-public:
-  virtual void write_bytes(std::byte const* start, std::byte const* stop) = 0;
-  virtual void flush() = 0;
-  virtual ~drat_sink() = default;
-};
-
 class drat_writer {
 public:
-  drat_writer(drat_sink& sink, drat_format format);
+  drat_writer(sink& sink, drat_format format);
   void add_clause(lit const* start, lit const* stop);
   void del_clause(lit const* start, lit const* stop);
   void flush();
@@ -36,14 +30,14 @@ private:
   void begin_clause(char prefix);
   void end_clause();
 
-  drat_sink* m_sink;
+  sink* m_sink;
   drat_format m_format;
   std::vector<std::byte> m_buffer;
 };
 
 // *** Implementation ***
 
-drat_writer::drat_writer(drat_sink& sink, drat_format format) : m_sink{&sink}, m_format{format} {}
+drat_writer::drat_writer(sink& sink, drat_format format) : m_sink{&sink}, m_format{format} {}
 
 inline void drat_writer::add_clause(lit const* start, lit const* stop)
 {
