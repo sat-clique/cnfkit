@@ -1,5 +1,9 @@
 #pragma once
 
+/**
+ * \file
+ */
+
 #include <cnfkit/detail/check_cxx_version.h>
 
 #include <cnfkit/io.h>
@@ -10,16 +14,59 @@
 #include <cstddef>
 #include <vector>
 
+/**
+ * \defgroup drat_writers DRAT Proof Writers
+ *
+ * \brief Writers for DRAT proofs
+ */
+
 namespace cnfkit {
 
+/**
+ * \brief Interface for DRAT writers.
+ *
+ * \ingroup drat_writers
+ */
 class drat_writer {
 public:
+  /**
+   * \brief Adds the given clause to the proof, marking it as added.
+   *
+   * If the given clause is non-empty, its first literal must be the pivot
+   * literal.
+   *
+   * \throws std::runtime_error     Thrown on I/O failure.
+   * \throws std::invalid_argument  Thrown when a literal cannot be represented in the
+   *                                supported range of DIMACS literals (see
+   *                                `to_dimacs_lit()`).
+   */
   virtual void add_clause(lit const* start, lit const* stop) = 0;
+
+  /**
+   * \brief Adds the given clause to the proof, marking it as deleted.
+   *
+   * \throws std::runtime_error     Thrown on I/O failure.
+   * \throws std::invalid_argument  Thrown when a literal cannot be represented in the
+   *                                supported range of DIMACS literals (see
+   *                                `to_dimacs_lit()`).
+   */
   virtual void del_clause(lit const* start, lit const* stop) = 0;
+
+  /**
+   * \brief Flushes the sink backing the writer.
+   *
+   * \throws std::runtimer_error    Thrown on I/O failure.
+   */
   virtual void flush() = 0;
+
   virtual ~drat_writer() = default;
 };
 
+/**
+ * \brief drat_writer implementation writing proofs in the text DRAT format.
+ *
+ * \ingroup drat_writers
+ */
 class drat_text_writer final : public drat_writer {
 public:
   drat_text_writer(sink& sink);
@@ -43,6 +90,11 @@ private:
   std::vector<std::byte> m_buffer;
 };
 
+/**
+ * \brief drat_writer implementation writing proofs in the binary DRAT format.
+ *
+ * \ingroup drat_writers
+ */
 class drat_binary_writer final : public drat_writer {
 public:
   drat_binary_writer(sink& sink);

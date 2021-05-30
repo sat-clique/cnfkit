@@ -1,5 +1,9 @@
 #pragma once
 
+/**
+ * \file
+ */
+
 #include <cnfkit/detail/check_cxx_version.h>
 
 #include <cnfkit/io.h>
@@ -11,9 +15,28 @@
 #include <optional>
 
 namespace cnfkit {
+
+/**
+ * \brief Reader for files that are uncompressed or gz-compressed.
+ *
+ * This class uses the zlib library.
+ *
+ * \ingroup io
+ */
 class zlib_source final : public source {
 public:
+  /**
+   * \brief Constructs a zlib_source object backed by the given file.
+   *
+   * \throws std::runtime_error   Thrown on I/O failure.
+   */
   explicit zlib_source(std::filesystem::path const& path);
+
+  /**
+   * \brief Constructs a zlib_source object reading from stdin.
+   *
+   * \throws std::runtime_error   Thrown on I/O failure.
+   */
   zlib_source();
 
   auto read_bytes(std::byte* buf_start, std::byte* buf_stop) -> std::byte* override;

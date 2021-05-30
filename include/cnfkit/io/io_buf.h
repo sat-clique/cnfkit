@@ -1,5 +1,9 @@
 #pragma once
 
+/**
+ * \file
+ */
+
 #include <cnfkit/detail/check_cxx_version.h>
 
 #include <cnfkit/io.h>
@@ -9,9 +13,31 @@
 #include <string>
 
 namespace cnfkit {
+
+/**
+ * \brief Reader for in-memory data.
+ *
+ * \ingroup io
+ */
 class buf_source final : public source {
 public:
+  /**
+   * \brief Constructs a buf_source object representing the data contained in
+   *        the given string.
+   *
+   * The lifetime of `str` must not be shorter than the lifetime of the
+   * `buf_source` object. The size of `str` must not be changed during the
+   * lifetime of the constructed object.
+   */
   explicit buf_source(std::string const& str);
+
+  /**
+   * \brief Constructs a buf_source object representing a contiguous range of
+   *        bytes.
+   *
+   * The constructed object represents the data in `[start, stop)`, which
+   * must be valid throughout the lifetime of the constructed object.
+   */
   explicit buf_source(std::byte const* start, std::byte const* stop);
 
   auto read_bytes(std::byte* buf_start, std::byte* buf_stop) -> std::byte* override;

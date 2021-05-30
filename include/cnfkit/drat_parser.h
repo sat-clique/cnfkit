@@ -28,7 +28,7 @@
 namespace cnfkit {
 
 /**
- * Parses a source object containing a DRAT proof in text format.
+ * \brief Parses a source object containing a DRAT proof in text format.
  *
  * \ingroup drat_parsers
  *
@@ -36,15 +36,17 @@ namespace cnfkit {
  * \param clause_receiver    A function with signature `void(bool, std::vector<lit> const&)`.
  *                           `clause_receiver` is invoked for each parsed clause. The first argument is true
  *                           if and only if the clause is added to the proof.
+ *                           `clause_receiver` may throw. Exceptions thrown by
+ *                           `clause_receiver` are not caught by the parser.
  *
- * \throws std::invalid_argument   when parsing the input failed.
- * \throws std::runtime_error      on I/O failure.
+ * \throws std::invalid_argument   Thrown when parsing the input failed.
+ * \throws std::runtime_error      Thrown on I/O failure.
  */
 template <typename BinaryFn>
 void parse_drat_text(source& source, BinaryFn&& clause_receiver);
 
 /**
- * Parses a source object containing a DRAT proof in binary format.
+ * \brief Parses a source object containing a DRAT proof in binary format.
  *
  * \ingroup drat_parsers
  *
@@ -52,9 +54,11 @@ void parse_drat_text(source& source, BinaryFn&& clause_receiver);
  * \param clause_receiver    A function with signature `void(bool, std::vector<lit> const&)`.
  *                           `clause_receiver` is invoked for each parsed clause. The first argument is true
  *                           if and only if the clause is added to the proof.
+ *                           `clause_receiver` may throw. Exceptions thrown by
+ *                           `clause_receiver` are not caught by the parser.
  *
- * \throws std::invalid_argument   when parsing the input failed.
- * \throws std::runtime_error      on I/O failure.
+ * \throws std::invalid_argument   Thrown when parsing the input failed.
+ * \throws std::runtime_error      Thrown on I/O failure.
  */
 template <typename BinaryFn>
 void parse_drat_binary(source& source, BinaryFn&& clause_receiver);
