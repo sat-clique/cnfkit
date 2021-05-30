@@ -3,8 +3,7 @@
 #include <cnfkit/drat.h>
 
 #include <cnfkit/detail/cnflike_parser.h>
-
-#include <zlib.h>
+#include <cnfkit/io/io_zlib.h>
 
 #include <array>
 #include <cstddef>
@@ -106,68 +105,24 @@ private:
 
 class drat_binary_input_file {
 public:
-  drat_binary_input_file(std::filesystem::path const& file)
-  {
-    m_file = gzopen(file.string().data(), "rb");
-    if (m_file == nullptr) {
-      std::perror(file.string().data());
-      throw std::runtime_error{"Could not open input file."};
-    }
-  }
+  drat_binary_input_file(std::filesystem::path const& file) : m_source{file} {}
 
-  drat_binary_input_file()
-  {
-    m_file = gzdopen(0, "rb");
-    if (m_file == nullptr) {
-      throw std::runtime_error{"Could not open stdin for reading."};
-    }
-  }
+  drat_binary_input_file() : m_source{} {}
 
-  ~drat_binary_input_file()
-  {
-    if (m_file != nullptr) {
-      gzclose(m_file);
-    }
-  }
-
-  auto is_eof() const -> bool { return gzeof(m_file); }
-
-  auto read_byte() -> std::optional<std::byte>
-  {
-    unsigned char character = 0;
-    int chars_read = gzread(m_file, &character, 1);
-
-    if (chars_read == 0 && is_eof()) {
-      return std::nullopt;
-    }
-
-    if (chars_read <= 0) {
-      int errnum = 0;
-      char const* message = gzerror(m_file, &errnum);
-      throw std::runtime_error{message};
-    }
-
-    return std::byte{character};
-  }
+  auto is_eof() -> bool { return m_source.is_eof(); }
 
   auto read_chunk(size_t desired_size) -> std::vector<std::byte> const&
   {
     m_buffer.resize(desired_size);
-    int bytes_read = ::gzread(m_file, m_buffer.data(), desired_size);
-
-    if (bytes_read < 0) {
-      int errnum = 0;
-      char const* message = gzerror(m_file, &errnum);
-      throw std::runtime_error{message};
-    }
-
-    m_buffer.resize(bytes_read);
+    std::byte* byte_buffer = reinterpret_cast<std::byte*>(m_buffer.data());
+    std::byte* read_stop = m_source.read_bytes(byte_buffer, byte_buffer + desired_size);
+    m_buffer.resize(read_stop - byte_buffer);
 
     // stopped in the middle of a literal ~> read rest, too
     // TODO: only read at most 4 additional chars
     if (!m_buffer.empty()) {
       while (!is_eof() && (m_buffer.back() & std::byte{0x80}) != std::byte{0}) {
-        m_buffer.push_back(*read_byte());
+        m_buffer.push_back(*m_source.read_byte());
       }
     }
 
@@ -182,7 +137,7 @@ public:
 
 private:
   std::vector<std::byte> m_buffer;
-  gzFile m_file;
+  zlib_source m_source;
 };
 
 template <typename BinaryFn>

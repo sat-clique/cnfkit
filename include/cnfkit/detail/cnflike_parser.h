@@ -1,8 +1,7 @@
 #pragma once
 
+#include <cnfkit/io/io_zlib.h>
 #include <cnfkit/literal.h>
-
-#include <zlib.h>
 
 #include <charconv>
 #include <filesystem>
@@ -24,46 +23,17 @@ inline auto is_irrelevant_line(std::string const& line) -> bool
 
 class cnf_gz_file {
 public:
-  explicit cnf_gz_file(std::filesystem::path const& file)
-  {
-    m_file = gzopen(file.string().data(), "rb");
-    if (m_file == nullptr) {
-      std::perror(file.string().data());
-      throw std::runtime_error{"Could not open input file."};
-    }
-  }
+  explicit cnf_gz_file(std::filesystem::path const& file) : m_source{file} {}
 
-  cnf_gz_file()
-  {
-    m_file = gzdopen(0, "rb");
-    if (m_file == nullptr) {
-      throw std::runtime_error{"Could not open stdin for reading."};
-    }
-  }
-
-  ~cnf_gz_file()
-  {
-    if (m_file != nullptr) {
-      gzclose(m_file);
-    }
-  }
+  cnf_gz_file() : m_source{} {}
 
   auto read_char() -> std::optional<char>
   {
-    char character = 0;
-    int chars_read = gzread(m_file, &character, 1);
-
-    if (chars_read == 0 && is_eof()) {
+    std::optional<std::byte> result = m_source.read_byte();
+    if (!result.has_value()) {
       return std::nullopt;
     }
-
-    if (chars_read <= 0) {
-      int errnum = 0;
-      char const* message = gzerror(m_file, &errnum);
-      throw std::runtime_error{message};
-    }
-
-    return character;
+    return std::to_integer<char>(*result);
   }
 
   auto read_line() -> std::string
@@ -86,7 +56,7 @@ public:
     std::string line;
     do {
       line = read_line();
-    } while (is_irrelevant_line(line) && !is_eof());
+    } while (is_irrelevant_line(line) && !m_source.is_eof());
 
     return line;
   }
@@ -107,23 +77,17 @@ public:
     }
 
     buffer.resize(desired_size);
-    int const bytes_read = gzread(m_file, buffer.data(), desired_size);
-
-    if (bytes_read < 0) {
-      int errnum = 0;
-      char const* message = gzerror(m_file, &errnum);
-      throw std::runtime_error{message};
-    }
-
-    buffer.resize(bytes_read);
+    std::byte* byte_buffer = reinterpret_cast<std::byte*>(buffer.data());
+    std::byte* read_stop = m_source.read_bytes(byte_buffer, byte_buffer + desired_size);
+    buffer.resize(read_stop - byte_buffer);
 
     // stopped in the middle of a literal ~> read rest, too
-    while (!is_eof() && std::isspace(buffer.back()) == 0) {
+    while (!m_source.is_eof() && std::isspace(buffer.back()) == 0) {
       buffer.push_back(*read_char());
     }
   }
 
-  bool is_eof() const { return gzeof(m_file) != 0; }
+  auto is_eof() -> bool { return m_source.is_eof(); };
 
   cnf_gz_file(cnf_gz_file const& rhs) = delete;
   auto operator=(cnf_gz_file const& rhs) -> cnf_gz_file& = delete;
@@ -131,7 +95,7 @@ public:
   auto operator=(cnf_gz_file&& rhs) -> cnf_gz_file& = default;
 
 private:
-  gzFile m_file;
+  zlib_source m_source;
 };
 
 template <typename It>
