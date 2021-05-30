@@ -18,6 +18,11 @@ public:
   auto read_byte() -> std::optional<std::byte> override;
   auto is_eof() -> bool override;
 
+  auto operator=(buf_source const&) noexcept -> buf_source& = default;
+  buf_source(buf_source const&) noexcept = default;
+  auto operator=(buf_source&&) noexcept -> buf_source& = default;
+  buf_source(buf_source&&) noexcept = default;
+
 private:
   std::byte const* m_cursor = nullptr;
   size_t m_remaining_size = 0;

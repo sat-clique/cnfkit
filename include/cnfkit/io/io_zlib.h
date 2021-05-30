@@ -22,6 +22,12 @@ public:
 
   virtual ~zlib_source();
 
+  auto operator=(zlib_source const&) -> zlib_source& = delete;
+  zlib_source(zlib_source const&) = delete;
+
+  auto operator=(zlib_source&& rhs) noexcept -> zlib_source&;
+  zlib_source(zlib_source&& rhs) noexcept;
+
 private:
   gzFile m_file = nullptr;
 };
@@ -30,6 +36,7 @@ private:
 
 inline zlib_source::zlib_source(std::filesystem::path const& path)
 {
+  // TODO: path.string() is broken on Windows
   m_file = gzopen(path.string().data(), "rb");
   if (m_file == nullptr) {
     std::perror(path.string().data());
@@ -47,7 +54,9 @@ inline zlib_source::zlib_source()
 
 inline zlib_source::~zlib_source()
 {
-  gzclose(m_file);
+  if (m_file != nullptr) {
+    gzclose(m_file);
+  }
 }
 
 inline auto zlib_source::read_bytes(std::byte* buf_start, std::byte* buf_stop) -> std::byte*
@@ -81,5 +90,17 @@ inline auto zlib_source::read_byte() -> std::optional<std::byte>
 inline auto zlib_source::is_eof() -> bool
 {
   return gzeof(m_file) != 0;
+}
+
+inline auto zlib_source::operator=(zlib_source&& rhs) noexcept -> zlib_source&
+{
+  m_file = rhs.m_file;
+  rhs.m_file = nullptr;
+  return *this;
+}
+
+inline zlib_source::zlib_source(zlib_source&& rhs) noexcept : m_file{rhs.m_file}
+{
+  rhs.m_file = nullptr;
 }
 }
