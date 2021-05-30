@@ -1,6 +1,6 @@
 #pragma once
 
-#include <cnfkit/io/io_zlib.h>
+#include <cnfkit/io.h>
 #include <cnfkit/literal.h>
 
 #include <charconv>

@@ -3,6 +3,7 @@
 #include <cnfkit/drat.h>
 
 #include <cnfkit/detail/cnflike_parser.h>
+#include <cnfkit/io/io_buf.h>
 #include <cnfkit/io/io_zlib.h>
 
 #include <array>
@@ -188,9 +189,8 @@ void parse_drat_from_stdin_impl(drat_format format, BinaryFn&& clause_receiver)
 template <typename BinaryFn>
 void parse_drat_string_impl(std::string const& drat, BinaryFn&& clause_receiver)
 {
-  cnf_chunk_parser parser{cnf_chunk_parser_mode::drat};
-  parser.parse(drat, 0, clause_receiver);
-  parser.check_on_drat_finish();
+  buf_source source{drat};
+  parse_drat_text_source(source, clause_receiver);
 }
 
 template <typename BinaryFn>
@@ -198,8 +198,7 @@ void parse_drat_binary_buffer_impl(std::byte const* start,
                                    std::byte const* stop,
                                    BinaryFn&& clause_receiver)
 {
-  drat_binary_chunk_parser parser;
-  parser.parse(start, stop, clause_receiver);
-  parser.check_on_drat_finish();
+  buf_source source{start, stop};
+  parse_drat_binary_source(source, clause_receiver);
 }
 }

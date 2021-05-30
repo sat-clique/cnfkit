@@ -10,6 +10,9 @@
 #include <cnfkit/detail/dimacs_parser.h>
 #include <cnfkit/literal.h>
 
+#include <cnfkit/io/io_buf.h>
+#include <cnfkit/io/io_zlib.h>
+
 #include <filesystem>
 #include <string>
 
@@ -93,21 +96,14 @@ void parse_cnf_from_stdin(UnaryFn&& clause_receiver)
 {
   using namespace detail;
   zlib_source source;
-  parse_cnf_gz_file(source, clause_receiver);
+  parse_cnf_source(source, clause_receiver);
 }
 
 template <typename UnaryFn>
 void parse_cnf_string(std::string const& cnf, UnaryFn&& clause_receiver)
 {
   using namespace detail;
-
-  dimacs_problem_header header = parse_cnf_header_line(cnf);
-  cnf_chunk_parser parser{cnf_chunk_parser_mode::dimacs};
-  parser.parse(cnf,
-               header.header_size,
-               [&clause_receiver](bool /*ignored*/, std::vector<lit> const& clause) {
-                 clause_receiver(clause);
-               });
-  parser.check_on_dimacs_finish(header);
+  buf_source source{cnf};
+  parse_cnf_source(source, clause_receiver);
 }
 }
