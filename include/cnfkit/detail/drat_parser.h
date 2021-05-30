@@ -103,11 +103,9 @@ private:
   bool m_is_in_clause = false;
 };
 
-class drat_binary_input_file {
+class drat_source_reader {
 public:
-  drat_binary_input_file(std::filesystem::path const& file) : m_source{file} {}
-
-  drat_binary_input_file() : m_source{} {}
+  drat_source_reader(source& source) : m_source{source} {}
 
   auto is_eof() -> bool { return m_source.is_eof(); }
 
@@ -129,15 +127,9 @@ public:
     return m_buffer;
   }
 
-
-  drat_binary_input_file(drat_binary_input_file const& rhs) = delete;
-  auto operator=(drat_binary_input_file const& rhs) -> drat_binary_input_file& = delete;
-  drat_binary_input_file(drat_binary_input_file&& rhs) = default;
-  auto operator=(drat_binary_input_file&& rhs) -> drat_binary_input_file& = default;
-
 private:
   std::vector<std::byte> m_buffer;
-  zlib_source m_source;
+  source& m_source;
 };
 
 template <typename BinaryFn>
@@ -155,11 +147,12 @@ auto parse_drat_text_gz_file(cnf_gz_file& file, BinaryFn&& clause_receiver)
 }
 
 template <typename BinaryFn>
-auto parse_drat_binary_gz_file(drat_binary_input_file& file, BinaryFn&& clause_receiver)
+auto parse_drat_binary_source(source& source, BinaryFn&& clause_receiver)
 {
   drat_binary_chunk_parser parser;
-  while (!file.is_eof()) {
-    auto const& buffer = file.read_chunk(default_chunk_size);
+  drat_source_reader reader{source};
+  while (!reader.is_eof()) {
+    auto const& buffer = reader.read_chunk(default_chunk_size);
     parser.parse(buffer.data(), buffer.data() + buffer.size(), clause_receiver);
   }
 
@@ -172,8 +165,8 @@ void parse_drat_file_impl(std::filesystem::path const& input_file,
                           BinaryFn&& clause_receiver)
 {
   if (format == drat_format::binary) {
-    drat_binary_input_file file{input_file};
-    parse_drat_binary_gz_file(file, clause_receiver);
+    zlib_source file{input_file};
+    parse_drat_binary_source(file, clause_receiver);
   }
   else {
     cnf_gz_file file{input_file};
@@ -185,8 +178,8 @@ template <typename BinaryFn>
 void parse_drat_from_stdin_impl(drat_format format, BinaryFn&& clause_receiver)
 {
   if (format == drat_format::binary) {
-    drat_binary_input_file stdin_file;
-    parse_drat_binary_gz_file(stdin_file, clause_receiver);
+    zlib_source stdin_file;
+    parse_drat_binary_source(stdin_file, clause_receiver);
   }
   else {
     cnf_gz_file stdin_file;
