@@ -1,8 +1,8 @@
 #include <cnfkit/drat_writer.h>
 
 #include <cnfkit/drat_parser.h>
-#include <cnfkit/literal.h>
 #include <cnfkit/io.h>
+#include <cnfkit/literal.h>
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>

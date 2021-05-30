@@ -3,8 +3,8 @@
 #include <cnfkit/detail/check_cxx_version.h>
 
 #include <cnfkit/drat.h>
-#include <cnfkit/literal.h>
 #include <cnfkit/io.h>
+#include <cnfkit/literal.h>
 
 #include <array>
 #include <charconv>

@@ -6,9 +6,9 @@
 
 #include <cnfkit/detail/check_cxx_version.h>
 
-#include <cnfkit/literal.h>
 #include <cnfkit/detail/cnflike_parser.h>
 #include <cnfkit/detail/dimacs_parser.h>
+#include <cnfkit/literal.h>
 
 #include <filesystem>
 #include <string>

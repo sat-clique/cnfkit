@@ -6,8 +6,8 @@
 
 #include <cnfkit/detail/check_cxx_version.h>
 
-#include <cnfkit/literal.h>
 #include <cnfkit/detail/drat_parser.h>
+#include <cnfkit/literal.h>
 
 #include <cstddef>
 #include <filesystem>

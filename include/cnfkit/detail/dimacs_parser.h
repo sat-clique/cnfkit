@@ -1,7 +1,7 @@
 #pragma once
 
-#include <cnfkit/literal.h>
 #include <cnfkit/detail/cnflike_parser.h>
+#include <cnfkit/literal.h>
 
 #include <charconv>
 #include <filesystem>
