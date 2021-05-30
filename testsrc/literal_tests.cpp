@@ -1,4 +1,4 @@
-#include <cnfkit/Literal.h>
+#include <cnfkit/literal.h>
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>

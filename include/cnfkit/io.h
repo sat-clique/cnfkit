@@ -1,6 +1,6 @@
 #pragma once
 
-#include <cnfkit/detail/CheckCxxVersion.h>
+#include <cnfkit/detail/check_cxx_version.h>
 
 #include <cstddef>
 

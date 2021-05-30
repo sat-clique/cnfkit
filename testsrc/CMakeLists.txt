@@ -1,12 +1,12 @@
 add_executable(cnfkit-tests
-  ClauseTests.cpp
-  DimacsParserTests.cpp
-  DratParserTests.cpp
-  DratWriterTests.cpp
-  LiteralTests.cpp
-  TestUtils.cpp
-  TestUtils.h
-  TernaryTests.cpp
+  clause_tests.cpp
+  dimacs_parser_tests.cpp
+  drat_parser_tests.cpp
+  drat_writer_tests.cpp
+  literal_tests.cpp
+  test_utils.cpp
+  test_utils.h
+  ternary_tests.cpp
 )
 
 target_link_libraries(cnfkit-tests PRIVATE cnfkit::cnfkit gtest gmock gmock_main)

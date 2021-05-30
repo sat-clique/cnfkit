@@ -1,4 +1,4 @@
-#include <cnfkit/Clause.h>
+#include <cnfkit/clause.h>
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>

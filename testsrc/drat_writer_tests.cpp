@@ -1,8 +1,8 @@
-#include <cnfkit/DratWriter.h>
+#include <cnfkit/drat_writer.h>
 
-#include <cnfkit/DratParser.h>
-#include <cnfkit/Literal.h>
-#include <cnfkit/Sink.h>
+#include <cnfkit/drat_parser.h>
+#include <cnfkit/literal.h>
+#include <cnfkit/io.h>
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>

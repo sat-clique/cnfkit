@@ -1,8 +1,8 @@
 #pragma once
 
-#include <cnfkit/Drat.h>
+#include <cnfkit/drat.h>
 
-#include <cnfkit/detail/CnfLikeParser.h>
+#include <cnfkit/detail/cnflike_parser.h>
 
 #include <zlib.h>
 

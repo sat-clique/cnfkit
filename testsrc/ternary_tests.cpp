@@ -1,4 +1,4 @@
-#include <cnfkit/Ternary.h>
+#include <cnfkit/ternary.h>
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>

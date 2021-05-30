@@ -4,11 +4,11 @@
  * \file
  */
 
-#include <cnfkit/detail/CheckCxxVersion.h>
+#include <cnfkit/detail/check_cxx_version.h>
 
-#include <cnfkit/Literal.h>
-#include <cnfkit/detail/CnfLikeParser.h>
-#include <cnfkit/detail/DimacsParser.h>
+#include <cnfkit/literal.h>
+#include <cnfkit/detail/cnflike_parser.h>
+#include <cnfkit/detail/dimacs_parser.h>
 
 #include <filesystem>
 #include <string>

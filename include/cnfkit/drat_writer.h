@@ -1,10 +1,10 @@
 #pragma once
 
-#include <cnfkit/detail/CheckCxxVersion.h>
+#include <cnfkit/detail/check_cxx_version.h>
 
-#include <cnfkit/Drat.h>
-#include <cnfkit/Literal.h>
-#include <cnfkit/Sink.h>
+#include <cnfkit/drat.h>
+#include <cnfkit/literal.h>
+#include <cnfkit/io.h>
 
 #include <array>
 #include <charconv>

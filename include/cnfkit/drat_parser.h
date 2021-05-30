@@ -4,10 +4,10 @@
  * \file
  */
 
-#include <cnfkit/detail/CheckCxxVersion.h>
+#include <cnfkit/detail/check_cxx_version.h>
 
-#include <cnfkit/Literal.h>
-#include <cnfkit/detail/DratParser.h>
+#include <cnfkit/literal.h>
+#include <cnfkit/detail/drat_parser.h>
 
 #include <cstddef>
 #include <filesystem>

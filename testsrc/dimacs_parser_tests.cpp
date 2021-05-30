@@ -1,6 +1,6 @@
-#include <cnfkit/DimacsParser.h>
+#include <cnfkit/dimacs_parser.h>
 
-#include "TestUtils.h"
+#include "test_utils.h"
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>

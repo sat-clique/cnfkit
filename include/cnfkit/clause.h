@@ -1,6 +1,6 @@
 #pragma once
 
-#include <cnfkit/Literal.h>
+#include <cnfkit/literal.h>
 
 #include <cassert>
 #include <cstdint>
