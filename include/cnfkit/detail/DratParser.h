@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cnfkit/Drat.h>
+
 #include <cnfkit/detail/CnfLikeParser.h>
 
 #include <zlib.h>
@@ -9,10 +11,6 @@
 #include <filesystem>
 #include <string>
 #include <vector>
-
-namespace cnfkit {
-enum class drat_format { text, binary };
-}
 
 namespace cnfkit::detail {
 
