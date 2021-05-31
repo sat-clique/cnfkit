@@ -59,8 +59,13 @@ private:
 
 inline zlib_source::zlib_source(std::filesystem::path const& path)
 {
-  // TODO: path.string() is broken on Windows
+#ifdef WIN32
+  // Avoiding lossy conversion to non-UTF narrow string encoding
+  m_file = gzopen_w(path.wstring().data(), "rb");
+#else
   m_file = gzopen(path.string().data(), "rb");
+#endif
+
   if (m_file == nullptr) {
     std::perror(path.string().data());
     throw std::runtime_error{"Could not open input file."};
