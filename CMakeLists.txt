@@ -3,14 +3,11 @@ cmake_policy(VERSION 3.12)
 
 project(cnfkit VERSION 0.1.0)
 
-find_package(zlib REQUIRED)
-
 if (NOT CMAKE_CURRENT_LIST_DIR STREQUAL CMAKE_SOURCE_DIR)
   # CNFKit has been added via add_subdirectory()
 
   add_library(cnfkit::cnfkit INTERFACE IMPORTED)
   target_include_directories(cnfkit::cnfkit INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/include")
-  target_link_libraries(cnfkit::cnfkit INTERFACE ZLIB::ZLIB)
 else()
   # Building CNFKit in standalone mode, ie. it is not included via add_subdirectory()
   # in another project
