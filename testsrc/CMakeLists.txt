@@ -4,6 +4,7 @@ if (CNFKIT_ENABLE_TESTS)
     dimacs_parser_tests.cpp
     drat_parser_tests.cpp
     drat_writer_tests.cpp
+    io_tests.cpp
     literal_tests.cpp
     test_utils.cpp
     test_utils.h

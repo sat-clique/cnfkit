@@ -33,9 +33,13 @@ else()
     add_link_options(-fsanitize=address,undefined)
   endif()
 
+  find_package(zlib REQUIRED)
+  find_package(LibArchive REQUIRED)
+
   add_library(cnfkit INTERFACE)
   target_include_directories(cnfkit INTERFACE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>)
-  target_link_libraries(cnfkit INTERFACE ZLIB::ZLIB)
+  target_link_libraries(cnfkit INTERFACE ZLIB::ZLIB "${LibArchive_LIBRARIES}")
+  target_include_directories(cnfkit INTERFACE "${LibArchive_INCLUDE_DIR}")
 
   install(DIRECTORY include/cnfkit DESTINATION include)
   install(TARGETS cnfkit EXPORT cnfkit INCLUDES DESTINATION include)

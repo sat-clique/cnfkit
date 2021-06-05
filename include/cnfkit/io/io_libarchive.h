@@ -56,7 +56,7 @@ libarchive_source::libarchive_source(std::filesystem::path const& path)
   size_t const buffer_size = 16384;
   // TODO: this won't work properly on Windows (lossy narrow string conversion)
   if (archive_read_open_filename(m_file, path.string().c_str(), buffer_size) != ARCHIVE_OK) {
-    close_and_throw(archive_error_string(m_file));
+    close_and_throw("opening input file failed");
   }
 
   archive_entry* entry = nullptr;
