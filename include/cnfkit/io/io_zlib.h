@@ -89,6 +89,10 @@ inline zlib_source::~zlib_source()
 
 inline auto zlib_source::read_bytes(std::byte* buf_start, std::byte* buf_stop) -> std::byte*
 {
+  if (m_file == nullptr) {
+    return buf_start;
+  }
+
   int const bytes_read = gzread(m_file, buf_start, buf_stop - buf_start);
   if (bytes_read < 0) {
     int errnum = 0;
@@ -101,6 +105,10 @@ inline auto zlib_source::read_bytes(std::byte* buf_start, std::byte* buf_stop) -
 
 inline auto zlib_source::read_byte() -> std::optional<std::byte>
 {
+  if (m_file == nullptr) {
+    return std::nullopt;
+  }
+
   std::byte result;
   int bytes_read = gzread(m_file, &result, 1);
   if (bytes_read == 0 && is_eof()) {
@@ -117,6 +125,10 @@ inline auto zlib_source::read_byte() -> std::optional<std::byte>
 
 inline auto zlib_source::is_eof() -> bool
 {
+  if (m_file == nullptr) {
+    return true;
+  }
+
   return gzeof(m_file) != 0;
 }
 
