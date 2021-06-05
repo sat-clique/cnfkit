@@ -6,6 +6,10 @@
 
 #include <cnfkit/detail/check_cxx_version.h>
 
+#if !__has_include(<zlib.h>)
+#error "zlib.h not found. The headers of zlib must be added to the include search path."
+#endif
+
 #include <cnfkit/io.h>
 
 #include <zlib.h>

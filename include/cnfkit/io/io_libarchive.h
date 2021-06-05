@@ -6,6 +6,10 @@
 
 #include <cnfkit/detail/check_cxx_version.h>
 
+#if !__has_include(<archive.h>)
+#error "archive.h not found. The headers of libarchive must be added to the include search path."
+#endif
+
 #include <cnfkit/io.h>
 
 #include <archive.h>
