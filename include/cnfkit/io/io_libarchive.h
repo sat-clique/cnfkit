@@ -19,8 +19,20 @@
 #include <stdexcept>
 
 namespace cnfkit {
+/**
+ * \brief libarchive-based reader.
+ *
+ * \ingroup io
+ */
 class libarchive_source : public source {
 public:
+  /**
+   * Constructs a libarchive_source reading the given file.
+   *
+   * The file may be compressed using any format supported by libarchive.
+   *
+   * \throws std::runtime_error  Thrown when opening the file failed.
+   */
   explicit libarchive_source(std::filesystem::path const& path);
   ~libarchive_source();
 

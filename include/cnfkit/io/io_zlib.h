@@ -23,7 +23,8 @@ namespace cnfkit {
 /**
  * \brief Reader for files that are uncompressed or gz-compressed.
  *
- * This class uses the zlib library.
+ * This class uses the zlib library. The reader may be used to read
+ * gzip-compressed, deflate-compressed or uncompressed files.
  *
  * \ingroup io
  */
@@ -32,7 +33,8 @@ public:
   /**
    * \brief Constructs a zlib_source object backed by the given file.
    *
-   * \throws std::runtime_error   Thrown on I/O failure.
+   * \throws std::runtime_error   Thrown on I/O failure or if the file is
+   *                              corrupt.
    */
   explicit zlib_source(std::filesystem::path const& path);
 
