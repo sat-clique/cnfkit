@@ -117,7 +117,9 @@ public:
     // TODO: only read at most 4 additional chars
     if (!m_buffer.empty()) {
       while (!is_eof() && (m_buffer.back() & std::byte{0x80}) != std::byte{0}) {
-        m_buffer.push_back(*m_source.read_byte());
+        if (std::optional<std::byte> extra_byte = m_source.read_byte(); extra_byte.has_value()) {
+          m_buffer.push_back(*extra_byte);
+        }
       }
     }
 

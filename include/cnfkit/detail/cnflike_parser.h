@@ -53,7 +53,7 @@ public:
     std::string line;
     do {
       line = read_line();
-    } while (is_irrelevant_line(line) && !m_source.is_eof());
+    } while (is_irrelevant_line(line) && !is_eof());
 
     return line;
   }
@@ -79,8 +79,10 @@ public:
     buffer.resize(read_stop - byte_buffer);
 
     // stopped in the middle of a literal ~> read rest, too
-    while (!m_source.is_eof() && std::isspace(buffer.back()) == 0) {
-      buffer.push_back(*read_char());
+    while (std::isspace(buffer.back()) == 0 && !is_eof()) {
+      if (std::optional<char> const extra_char = read_char(); extra_char.has_value()) {
+        buffer.push_back(*extra_char);
+      }
     }
   }
 
