@@ -1,7 +1,9 @@
 #include <cnfkit/io.h>
 #include <cnfkit/io/io_buf.h>
 #include <cnfkit/io/io_libarchive.h>
+#include <cnfkit/io/io_stdstream.h>
 #include <cnfkit/io/io_zlib.h>
+
 
 #include "test_utils.h"
 
@@ -11,6 +13,7 @@
 #include <filesystem>
 #include <fstream>
 #include <memory>
+#include <sstream>
 #include <string>
 #include <vector>
 
@@ -125,11 +128,48 @@ TYPED_TEST(DecompressingSourceTests, ReadingAfterMove)
 
   TypeParam moved_source = std::move(under_test);
   EXPECT_THAT(moved_source.read_byte(), ::testing::Optional(std::byte{'L'}));
+}
+
+
+TEST(IStreamSourceTests, ReadCompleteInput)
+{
+  std::stringstream test_input{uncompressed_input};
+  istream_source under_test{test_input};
 
   auto buffer = create_buffer();
-  EXPECT_THAT(under_test.read_bytes(buffer.data(), buffer.data() + 1), Eq(buffer.data()));
+  auto ptr_past_end =
+      under_test.read_bytes(buffer.data(), buffer.data() + uncompressed_input.size());
+  buffer.resize(std::distance(buffer.data(), ptr_past_end));
+
+  EXPECT_THAT(buffer, Eq(as_bytes(uncompressed_input)));
+
   EXPECT_THAT(under_test.read_byte(), Eq(std::nullopt));
   EXPECT_TRUE(under_test.is_eof());
 }
 
+TEST(IStreamSourceTests, ReadCompleteInputBytewise)
+{
+  std::stringstream test_input{uncompressed_input};
+  istream_source under_test{test_input};
+
+  std::vector<std::byte> result;
+  while (!under_test.is_eof()) {
+    std::optional<std::byte> const byte = under_test.read_byte();
+    if (byte.has_value()) {
+      result.push_back(*byte);
+    }
+  }
+
+  EXPECT_TRUE(under_test.is_eof());
+  EXPECT_THAT(result, Eq(as_bytes(uncompressed_input)));
+}
+
+TEST(IStreamSourceTests, ReadingAfterMove)
+{
+  std::stringstream test_input{uncompressed_input};
+  istream_source under_test{test_input};
+
+  istream_source moved_source = std::move(under_test);
+  EXPECT_THAT(moved_source.read_byte(), ::testing::Optional(std::byte{'L'}));
+}
 }

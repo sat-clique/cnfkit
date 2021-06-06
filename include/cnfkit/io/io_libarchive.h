@@ -34,7 +34,7 @@ public:
    * \throws std::runtime_error  Thrown when opening the file failed.
    */
   explicit libarchive_source(std::filesystem::path const& path);
-  ~libarchive_source();
+  virtual ~libarchive_source();
 
   auto read_bytes(std::byte* start, std::byte* stop) -> std::byte* override;
   auto read_byte() -> std::optional<std::byte> override;
