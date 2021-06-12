@@ -140,13 +140,12 @@ inline auto zlib_source::is_eof() -> bool
 
 inline auto zlib_source::operator=(zlib_source&& rhs) noexcept -> zlib_source&
 {
-  m_file = rhs.m_file;
-  rhs.m_file = nullptr;
+  std::swap(m_file, rhs.m_file);
   return *this;
 }
 
-inline zlib_source::zlib_source(zlib_source&& rhs) noexcept : m_file{rhs.m_file}
+inline zlib_source::zlib_source(zlib_source&& rhs) noexcept
 {
-  rhs.m_file = nullptr;
+  std::swap(m_file, rhs.m_file);
 }
 }

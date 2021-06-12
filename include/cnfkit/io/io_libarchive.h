@@ -133,18 +133,15 @@ auto libarchive_source::is_eof() -> bool
 
 auto libarchive_source::operator=(libarchive_source&& rhs) noexcept -> libarchive_source&
 {
-  m_file = rhs.m_file;
-  m_eof = rhs.m_eof;
-  rhs.m_file = nullptr;
-  rhs.m_eof = true;
+  std::swap(m_file, rhs.m_file);
+  std::swap(m_eof, rhs.m_eof);
   return *this;
 }
 
 libarchive_source::libarchive_source(libarchive_source&& rhs) noexcept
-  : m_file{rhs.m_file}, m_eof{rhs.m_eof}
 {
-  rhs.m_file = nullptr;
-  rhs.m_eof = true;
+  std::swap(m_file, rhs.m_file);
+  std::swap(m_eof, rhs.m_eof);
 }
 
 }
