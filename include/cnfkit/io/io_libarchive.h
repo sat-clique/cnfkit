@@ -55,7 +55,7 @@ private:
 
 // *** Implementation ***
 
-libarchive_source::libarchive_source(std::filesystem::path const& path)
+inline libarchive_source::libarchive_source(std::filesystem::path const& path)
 {
   m_file = archive_read_new();
   if (m_file == nullptr) {
@@ -81,14 +81,14 @@ libarchive_source::libarchive_source(std::filesystem::path const& path)
   }
 }
 
-libarchive_source::~libarchive_source()
+inline libarchive_source::~libarchive_source()
 {
   if (m_file != nullptr) {
     archive_read_free(m_file);
   }
 }
 
-void libarchive_source::close_and_throw(char const* message)
+inline void libarchive_source::close_and_throw(char const* message)
 {
   if (m_file != nullptr) {
     archive_read_free(m_file);
@@ -98,7 +98,7 @@ void libarchive_source::close_and_throw(char const* message)
   throw std::runtime_error(message);
 }
 
-auto libarchive_source::read_bytes(std::byte* start, std::byte* stop) -> std::byte*
+inline auto libarchive_source::read_bytes(std::byte* start, std::byte* stop) -> std::byte*
 {
   if (m_file == nullptr) {
     return start;
@@ -116,7 +116,7 @@ auto libarchive_source::read_bytes(std::byte* start, std::byte* stop) -> std::by
   return start + result;
 }
 
-auto libarchive_source::read_byte() -> std::optional<std::byte>
+inline auto libarchive_source::read_byte() -> std::optional<std::byte>
 {
   std::byte buf;
   std::byte* result = read_bytes(&buf, &buf + 1);
@@ -126,19 +126,19 @@ auto libarchive_source::read_byte() -> std::optional<std::byte>
   return buf;
 }
 
-auto libarchive_source::is_eof() -> bool
+inline auto libarchive_source::is_eof() -> bool
 {
   return m_eof;
 }
 
-auto libarchive_source::operator=(libarchive_source&& rhs) noexcept -> libarchive_source&
+inline auto libarchive_source::operator=(libarchive_source&& rhs) noexcept -> libarchive_source&
 {
   std::swap(m_file, rhs.m_file);
   std::swap(m_eof, rhs.m_eof);
   return *this;
 }
 
-libarchive_source::libarchive_source(libarchive_source&& rhs) noexcept
+inline libarchive_source::libarchive_source(libarchive_source&& rhs) noexcept
 {
   std::swap(m_file, rhs.m_file);
   std::swap(m_eof, rhs.m_eof);

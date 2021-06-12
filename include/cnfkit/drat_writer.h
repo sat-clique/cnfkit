@@ -121,7 +121,7 @@ private:
 
 // *** Implementation ***
 
-drat_text_writer::drat_text_writer(sink& sink) : m_sink{&sink} {}
+inline drat_text_writer::drat_text_writer(sink& sink) : m_sink{&sink} {}
 
 inline void drat_text_writer::add_clause(lit const* start, lit const* stop)
 {
@@ -177,7 +177,7 @@ inline void drat_text_writer::end_clause()
   m_buffer.push_back(std::byte('\n'));
 }
 
-drat_binary_writer::drat_binary_writer(sink& sink) : m_sink{&sink} {}
+inline drat_binary_writer::drat_binary_writer(sink& sink) : m_sink{&sink} {}
 
 inline void drat_binary_writer::add_clause(lit const* start, lit const* stop)
 {
