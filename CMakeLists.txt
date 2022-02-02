@@ -3,11 +3,11 @@ cmake_policy(VERSION 3.12)
 
 project(cnfkit VERSION 0.1.0)
 
-if (NOT CMAKE_CURRENT_LIST_DIR STREQUAL CMAKE_SOURCE_DIR)
-  # CNFKit has been added via add_subdirectory()
+get_directory_property(has_been_added_via_add_subdirectory PARENT_DIRECTORY)
 
-  add_library(cnfkit::cnfkit INTERFACE IMPORTED)
-  target_include_directories(cnfkit::cnfkit INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/include")
+if(has_been_added_via_add_subdirectory)
+  add_library(cnfkit INTERFACE)
+  target_include_directories(cnfkit INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/include")
 else()
   # Building CNFKit in standalone mode, ie. it is not included via add_subdirectory()
   # in another project
@@ -43,7 +43,7 @@ else()
 
   install(DIRECTORY include/cnfkit DESTINATION include)
   install(TARGETS cnfkit EXPORT cnfkit INCLUDES DESTINATION include)
-  install(EXPORT cnfkit NAMESPACE cnfkit:: DESTINATION lib/cmake/cnfkit FILE "cnfkitConfig.cmake")
+  install(EXPORT cnfkit DESTINATION lib/cmake/cnfkit FILE "cnfkitConfig.cmake")
 
   add_subdirectory(doc)
   add_subdirectory(testdeps)
