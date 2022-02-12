@@ -12,6 +12,7 @@
 #include <array>
 #include <charconv>
 #include <cstddef>
+#include <cstring>
 #include <vector>
 
 /**

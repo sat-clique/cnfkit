@@ -78,10 +78,12 @@ public:
     std::byte* read_stop = m_source.read_bytes(byte_buffer, byte_buffer + desired_size);
     buffer.resize(read_stop - byte_buffer);
 
-    // stopped in the middle of a literal ~> read rest, too
-    while (std::isspace(buffer.back()) == 0 && !is_eof()) {
-      if (std::optional<char> const extra_char = read_char(); extra_char.has_value()) {
-        buffer.push_back(*extra_char);
+    // if the buffer ends in the middle of a literal, read rest of the literal, too
+    if (!buffer.empty()) {
+      while (!is_eof() && std::isspace(buffer.back()) == 0) {
+        if (std::optional<char> const extra_char = read_char(); extra_char.has_value()) {
+          buffer.push_back(*extra_char);
+        }
       }
     }
   }
