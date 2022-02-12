@@ -33,7 +33,7 @@ else()
     add_link_options(-fsanitize=address,undefined)
   endif()
 
-  find_package(zlib REQUIRED)
+  find_package(ZLIB REQUIRED)
   find_package(LibArchive REQUIRED)
 
   add_library(cnfkit INTERFACE)
